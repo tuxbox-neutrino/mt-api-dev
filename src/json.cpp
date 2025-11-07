@@ -11,8 +11,7 @@
 #include <sstream>
 #include <climits>
 #include <memory>
-
-#include "llvm/Support/FormatVariadic.h"
+#include <string>
 
 #include "common/helpers.h"
 #include "json.h"
@@ -62,10 +61,11 @@ string CJson::styledJson(Json::Value json)
 
 void CJson::errorMsg(const char* func, int line, string msg)
 {
-	g_msgBoxText = llvm::formatv("<span style='color: OrangeRed'>[{0}:{1}] {2}</span>",
-				     func, line, ((msg.empty())?"Error":msg));
+	string resolved = msg.empty() ? "Error" : msg;
+	string prefix = "[" + string(func) + ":" + std::to_string(line) + "]";
+	g_msgBoxText = "<span style='color: OrangeRed'>" + prefix + " " + resolved + "</span>";
 
-	g_jsonError = llvm::formatv("[{0}:{1}]\n{2}", func, line, ((msg.empty())?"Error":msg));
+	g_jsonError = prefix + "\n" + resolved;
 }
 
 void CJson::parseError(const char* func, int line, string msg)
@@ -242,11 +242,12 @@ bool CJson::parsePostData(string jData)
 		g_queryMode = qh.mode;
 		if (!strEqual(qh.software, cooliSig1) && !strEqual(qh.software, cooliSig2) && !strEqual(qh.software, cooliSig3)) {
 #if 0
-			string tmp_msg = llvm::formatv("The given signature is '{0}',\nbut '{1}' or '{2}'\nor '{3}' is expected.",
-						       qh.software, cooliSig1, cooliSig2, cooliSig3);
+		string tmp_msg = "The given signature is '" + qh.software + "',\n"
+			+ "but '" + cooliSig1 + "' or '" + cooliSig2 + "'\n"
+			+ "or '" + cooliSig3 + "' is expected.";
 #else
-			string tmp_msg = llvm::formatv("The given signature is '{0}',\nbut '{1}' or '{2}' is expected.",
-						       qh.software, cooliSig1, cooliSig2);
+		string tmp_msg = "The given signature is '" + qh.software + "',\n"
+			+ "but '" + cooliSig1 + "' or '" + cooliSig2 + "' is expected.";
 #endif
 			errorMsg(__func__, __LINE__, tmp_msg);
 			return false;
@@ -299,7 +300,7 @@ string CJson::liveStreamList2Json(vector<livestreams_t>& ls, string indent/*=""*
 	ls.clear();
 	json["entry"] = entry;
 
-	return json2String(json, true, indent);
+	return json2String(json, indent);
 }
 
 string CJson::channelList2Json(vector<channels_t>& ch, string indent/*=""*/)
@@ -323,7 +324,7 @@ string CJson::channelList2Json(vector<channels_t>& ch, string indent/*=""*/)
 	ch.clear();
 	json["entry"] = entry;
 
-	return json2String(json, true, indent);
+	return json2String(json, indent);
 }
 
 string CJson::videoList2Json(string indent/*=""*/)
@@ -367,7 +368,7 @@ string CJson::videoList2Json(string indent/*=""*/)
 	listVideo_v.clear();
 	json["entry"] = entry;
 
-	return json2String(json, true, indent);
+	return json2String(json, indent);
 }
 
 string CJson::progInfo2Json(progInfo_t* pi, string indent/*=""*/)
@@ -393,7 +394,7 @@ string CJson::progInfo2Json(progInfo_t* pi, string indent/*=""*/)
 	entry.append(entryData);
 	json["entry"] = entry;
 
-	return json2String(json, true, indent);
+	return json2String(json, indent);
 }
 
 string CJson::jsonErrMsg(string msg, int err/*=1*/)
@@ -406,17 +407,12 @@ string CJson::jsonErrMsg(string msg, int err/*=1*/)
 	json["error"] = err;
 	json["entry"] = msg;
 
-	return json2String(json, true);
+	return json2String(json);
 }
 
-string CJson::json2String(Json::Value json, bool uriEncode/*=true*/, string indent/*=""*/)
+string CJson::json2String(Json::Value json, string indent/*=""*/)
 {
-	string ret_s = writeJson2String(json, indent);
-
-	if (uriEncode)
-		ret_s = g_mainInstance->cnet->encodeData(ret_s);
-
-	return ret_s;
+	return writeJson2String(json, indent);
 }
 
 string CJson::formatJson(string data, string tagBefore, string tagAfter)

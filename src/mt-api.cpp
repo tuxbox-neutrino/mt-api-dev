@@ -37,7 +37,7 @@
 #include <sstream>
 #include <climits>
 
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 #include "mt-api.h"
 #include "net.h"
@@ -277,7 +277,6 @@ int CMtApi::run(int, char**)
 		string json = "{ \"error\": 1, \"head\": [], \"entry\": \"Unsupported parameter.\" }";
 //		json = cjson->styledJson(json);
 		json = cjson->styledJson(inJsonData);
-		json = cnet->encodeData(json);
 		cout << json << endl;
 	}
 

@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 #include <string>
 
@@ -53,7 +53,7 @@ class CJson
 		string channelList2Json(vector<channels_t>& ch, string indent="");
 		string videoList2Json(string indent="");
 		string jsonErrMsg(string msg, int err=1);
-		string json2String(Json::Value json, bool uriEncode=true, string indent="");
+		string json2String(Json::Value json, string indent="");
 		string formatJson(string data, string tagBefore="", string tagAfter="");
 };
 

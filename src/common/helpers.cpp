@@ -14,6 +14,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+#include <limits>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

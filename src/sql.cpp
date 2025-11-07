@@ -11,8 +11,7 @@
 #include <sstream>
 #include <climits>
 #include <iomanip>
-
-#include "llvm/Support/FormatVariadic.h"
+#include <string>
 
 #include "common/helpers.h"
 #include "mt-api.h"
@@ -51,9 +50,12 @@ CSql::~CSql()
 
 void CSql::show_error(const char* func, int line)
 {
-	g_msgBoxText = llvm::formatv("<span style='color: OrangeRed'>[{0}:{1}] Error({2}) [{3}] \"{4}\"\n<br /></span>",
-				     func, line,
-				     mysql_errno(mysqlCon), mysql_sqlstate(mysqlCon), mysql_error(mysqlCon));
+	std::ostringstream oss;
+	oss << "<span style='color: OrangeRed'>[" << func << ':' << line
+	    << "] Error(" << mysql_errno(mysqlCon) << ") ["
+	    << mysql_sqlstate(mysqlCon) << "] \"" << mysql_error(mysqlCon)
+	    << "\"\n<br /></span>";
+	g_msgBoxText = oss.str();
 
 	mysql_close(mysqlCon);
 	mysqlCon = NULL;
@@ -104,8 +106,11 @@ string CSql::getTimer(double startTime, string txt, int preci/*=3*/)
 	struct timeval t1;
 	gettimeofday(&t1, NULL);
 	double workDTms = (double)t1.tv_sec*1000ULL + ((double)t1.tv_usec)/1000ULL;
-	string format = "{0} {1:F" + to_string(preci) + "} sec";
-	return llvm::formatv(format.c_str(), txt, (double)((workDTms - startTime) / 1000ULL));
+	std::ostringstream oss;
+	oss.setf(std::ios::fixed);
+	oss << txt << ' ' << std::setprecision(preci)
+	    << ((workDTms - startTime) / 1000ULL) << " sec";
+	return oss.str();
 }
 
 int CSql::row2int(MYSQL_ROW& row, uint64_t* lengths, int index)

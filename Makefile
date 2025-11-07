@@ -167,14 +167,14 @@ LIBS		+= -ltidy
 LIBS		+= -ljsoncpp
 LIBS		+= -lmariadb
 LIBS		+= -lboost_system
+LIBS		+= -lpthread
+LIBS		+= -ldl
+LIBS		+= -lc
 #LIBS		+= -lcppnetlib-client-connections
 #LIBS		+= -lcppnetlib-server-parsers
-LIBS		+= -lcppnetlib-uri
-LIBS		+= -lLLVM
 LIBS		+= $(EXTRA_LIBS)
 
-LDFLAGS		 = $(LIBS)
-LDFLAGS		+= $(EXTRA_LDFLAGS)
+LDFLAGS		 = $(EXTRA_LDFLAGS)
 
 all-build: $(BUILD_DIR)/$(PROGNAME) css
 all-build-strip: all-build strip
@@ -198,7 +198,7 @@ build/src/%.o: src/%.cpp
 $(BUILD_DIR)/$(PROGNAME): $(PROG_OBJS)
 	@if ! test -d $$(dirname $@); then mkdir -p $$(dirname $@); fi;
 	@if test "$(quiet)" = "@"; then echo "$(LNKX) *.o => $@"; fi;
-	$(quiet)$(LD) $(LDFLAGS) $(PROG_OBJS) -o $@
+	$(quiet)$(CXX) $(PROG_OBJS) $(LDFLAGS) $(LIBS) -o $@
 
 ifeq ($(DEBUG), 1)
 CSS_STYLE = expanded

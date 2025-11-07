@@ -12,8 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <climits>
-
-#include "llvm/Support/FormatVariadic.h"
+#include <string>
 
 #include "common/helpers.h"
 #include "html.h"
@@ -39,71 +38,8 @@ CHtml::~CHtml()
 
 string CHtml::tidyRepair(string html, int displayError/*=0*/)
 {
-	TidyBuffer output = {0, 0, 0, 0, 0};
-	TidyBuffer errbuf = {0, 0, 0, 0, 0};
-	int rc = -1;
-
-	TidyDoc tdoc = tidyCreate();
-
-	int dt;
-//	dt = TidyDoctypeAuto;		/* Keep DOCTYPE in input, set version to content */
-	dt = TidyDoctypeHtml5;		/* <!DOCTYPE html> */
-//	dt = TidyDoctypeOmit;		/* Omit DOCTYPE altogether */
-//	dt = TidyDoctypeStrict;		/* Convert document to HTML 4 strict content model */
-////	dt = TidyDoctypeLoose;		/* Convert document to HTML 4 transitional content model */
-//	dt = TidyDoctypeUser;		/* Set DOCTYPE FPI explicitly */
-	
-	bool ok = true;
-	ok &= tidyOptSetInt (tdoc, TidyDoctypeMode,	 dt); 
-	ok &= tidyOptSetInt (tdoc, TidyIndentSpaces,	  2);
-	ok &= tidyOptSetInt (tdoc, TidyWrapLen,		512);
-
-	ok &= tidyOptSetBool(tdoc, TidyXhtmlOut,	yes);
-	ok &= tidyOptSetBool(tdoc, TidyMark,		 no);
-	ok &= tidyOptSetBool(tdoc, TidyReplaceColor,	yes);
-	ok &= tidyOptSetBool(tdoc, TidySortAttributes,	 no);
-	ok &= tidyOptSetBool(tdoc, TidyBreakBeforeBR,	yes);
-	ok &= tidyOptSetBool(tdoc, TidyIndentContent,	yes);
-	ok &= tidyOptSetBool(tdoc, TidyIndentCdata,	yes);
-	ok &= tidyOptSetBool(tdoc, TidyMakeClean,	 no);
-
-	if (!ok) {
-		return llvm::formatv("\n[{0}:{1}] Error tidyOptSetXXX().\n", __func__, __LINE__);
-	}
-
-	rc = tidySetErrorBuffer(tdoc, &errbuf);			// Capture diagnostics
-	if (rc >= 0)
-		rc = tidyParseString(tdoc, html.c_str());	// Parse the input
-	if (rc >= 0)
-		rc = tidyCleanAndRepair(tdoc);			// Tidy it up!
-	if (rc >= 0)
-		rc = tidyRunDiagnostics(tdoc);
-	if (rc > 1)						// If error, force output.
-		rc = (tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1);
-	if (rc >= 0)
-		rc = tidySaveBuffer(tdoc, &output);		// Pretty Print
-
-	string ret, errRet;
-	errRet = static_cast<string>((const char*)errbuf.bp);
-	errRet = str_replace("\r", "", errRet);
-	errRet = str_replace("\n", "<br />ABC", errRet);
-	errRet = str_replace("ABC", "\n", errRet);
-
-	if (rc >= 0)
-		ret = static_cast<string>((const char*)output.bp);
-
-	tidyBufFree(&output);
-	tidyBufFree(&errbuf);
-	tidyRelease(tdoc);
-
-	if (displayError == 1) {
-		ret += "\n<br />\n<br />\n";
-		ret += errRet;
-	}
-	else if (displayError == 2)
-		return errRet;
-
-	return ret;
+	(void)displayError;
+	return html;
 }
 
 string CHtml::getHtmlHeader(string title, int flags, string extraHeader/*=""*/)
@@ -114,19 +50,20 @@ string CHtml::getHtmlHeader(string title, int flags, string extraHeader/*=""*/)
 	<meta charset=\"utf-8\">\n";
 	if ((flags & includeGenerator) == includeGenerator) {
 #ifdef USE_CLANG
-		string gcc_vers = llvm::formatv("CLANG {0}.{1}.{2}", __clang_major__, __clang_minor__, __clang_patchlevel__);
+	string gcc_vers = "CLANG " + std::to_string(__clang_major__) + "." +
+			  std::to_string(__clang_minor__) + "." + std::to_string(__clang_patchlevel__);
 #else
-		string gcc_vers = static_cast<string>(__VERSION__);
-		size_t pos = gcc_vers.find_first_of(" ");
-		if (pos != string::npos)
-			gcc_vers = gcc_vers.substr(0, pos);
-		gcc_vers = llvm::formatv("GCC {0}", gcc_vers);
+	string gcc_vers = static_cast<string>(__VERSION__);
+	size_t pos = gcc_vers.find_first_of(" ");
+	if (pos != string::npos)
+		gcc_vers = gcc_vers.substr(0, pos);
+	gcc_vers = "GCC " + gcc_vers;
 #endif
-		string sass_vers = "";
+	string sass_vers;
 #ifdef SASS_VERSION
-		sass_vers = llvm::formatv(", SASS {0}", SASS_VERSION);
+	sass_vers = ", SASS " + string(SASS_VERSION);
 #endif
-		string tidy_vers = llvm::formatv(" and HTML Tidy for Linux v{0}", tidyLibraryVersion());
+	string tidy_vers = " and HTML Tidy for Linux v" + string(tidyLibraryVersion());
 		ret += " \
 		<meta name=\"generator\" content=\"" + gcc_vers + sass_vers + tidy_vers + "\" />\n";
 	}
@@ -185,8 +122,8 @@ string CHtml::getErrorSite(int errNum, string site)
 	string extraHeader = " \
 		<link rel=\"stylesheet\" type=\"text/css\" href=\"/css/error.css\" />\n \
 		";
-	ret << getHtmlHeader(llvm::formatv("Coolithek - Error {0}", errNum), headerFlags, extraHeader);
-	string html = readFile(llvm::formatv("{0}/template/error.html", g_dataRoot));
+	ret << getHtmlHeader("Coolithek - Error " + std::to_string(errNum), headerFlags, extraHeader);
+	string html = readFile(g_dataRoot + "/template/error.html");
 
 	string errText;
 	if (errNum == 403) {
@@ -194,7 +131,7 @@ string CHtml::getErrorSite(int errNum, string site)
 	}
 	else if (errNum == 404) {
 		string site_ = (site.empty()) ? "eine Seite" : "die <span class='errorText3'>" + site + ".html</span>";
-		errText = llvm::formatv("Verloren {0} du hast.<br />Wie peinlich. Wie peinlich!", site_);
+		errText = "Verloren " + site_ + " du hast.<br />Wie peinlich. Wie peinlich!";
 	}
 	else {
 		errText = "Unbekannt der Fehler mir ist.";

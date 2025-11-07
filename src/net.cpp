@@ -6,17 +6,15 @@
 #include <libgen.h>
 #include <errno.h>
 
-#include <boost/network/uri.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <climits>
+#include <iomanip>
+#include <cctype>
 
 #include "common/helpers.h"
 #include "net.h"
-
-namespace uri = boost::network::uri;
 
 CNet::CNet()
 {
@@ -98,19 +96,56 @@ string CNet::getPostValue(vector<string>& post_v, string key)
 	for (size_t i = 0; i < post_v.size(); i++) {
 		vector<string> v = split(post_v[i], '=');
 		if (!v.empty() && (v[0] == key) && (!(v[1]).empty()))
-			return uri::decoded(v[1]);
+			return decodeData(v[1]);
 	}
 	return "";
 }
 
 string CNet::encodeData(string data)
 {
-	return uri::encoded(data);
+	std::ostringstream encoded;
+	encoded << std::hex << std::uppercase;
+	for (unsigned char c : data) {
+		if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+			encoded << c;
+		} else if (c == ' ') {
+			encoded << '+';
+		} else {
+			encoded << '%' << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+		}
+	}
+	return encoded.str();
 }
 
 string CNet::decodeData(string data)
 {
-	return uri::decoded(data);
+	std::string decoded;
+	decoded.reserve(data.size());
+	for (size_t i = 0; i < data.size(); ++i) {
+		char c = data[i];
+		if (c == '+') {
+			decoded.push_back(' ');
+		} else if (c == '%' && (i + 2) < data.size()) {
+			char hi = data[i + 1];
+			char lo = data[i + 2];
+			if (std::isxdigit(hi) && std::isxdigit(lo)) {
+				auto hexValue = [](char ch) -> int {
+					if (ch >= '0' && ch <= '9') return ch - '0';
+					if (ch >= 'a' && ch <= 'f') return 10 + (ch - 'a');
+					if (ch >= 'A' && ch <= 'F') return 10 + (ch - 'A');
+					return 0;
+				};
+				int value = (hexValue(hi) << 4) | hexValue(lo);
+				decoded.push_back(static_cast<char>(value));
+				i += 2;
+			} else {
+				decoded.push_back(c);
+			}
+		} else {
+			decoded.push_back(c);
+		}
+	}
+	return decoded;
 }
 
 /*

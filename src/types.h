@@ -2,7 +2,7 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 #include <string>
 
 using namespace std;

@@ -50,6 +50,14 @@ EXTRA_LDFLAGS		?=
 EXTRA_INCLUDES		?= 
 EXTRA_LIBS		?= 
 
+MT_API_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null)
+MT_API_VERSION := $(strip $(MT_API_VERSION))
+MT_API_VERSION := $(patsubst v%,%,$(MT_API_VERSION))
+ifeq ($(MT_API_VERSION),)
+MT_API_VERSION := 0.0.0
+endif
+EXTRA_CXXFLAGS		+= -DPROGVERSION=\"$(MT_API_VERSION)\"
+
 CXX			?= g++
 LD			?= g++
 STRIP			?= strip

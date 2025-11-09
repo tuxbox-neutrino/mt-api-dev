@@ -85,6 +85,12 @@ Das fertige Binary liegt anschließend unter `build/mt-api`. Die statischen
 Assets werden nach `build/src/css` sowie `src/web/...` kopiert. Für eine einfache
 Installation kannst du `make install DESTDIR=/opt/api.dist` verwenden.
 
+> **Version hinterlegen**  
+> Standardmäßig wird `git describe --tags` in das Binary geschrieben. Beim
+> Bauen aus einem Tarball kannst du das überschreiben:  
+> `MT_API_VERSION=0.5.0 make`. Die Ausgabe erscheint als `apiversion` im
+> Endpunkt `/mt-api?mode=api&sub=info`.
+
 ## Konfiguration & Betrieb
 
 1. Kopiere `sqlpasswd` nach `/opt/api/data/.passwd/sqlpasswd` und trage den

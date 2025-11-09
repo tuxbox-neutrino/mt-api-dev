@@ -82,6 +82,12 @@ The resulting binary is placed under `build/mt-api`. Static assets are generated
 into `build/src/css` and `src/web/...`. Use `make install DESTDIR=/opt/api.dist`
 if you want to copy everything into a staging directory.
 
+> **Version embedding**  
+> The build system automatically injects `git describe --tags` into the binary.
+> Override it if you build from a tarball:  
+> `MT_API_VERSION=0.5.0 make`. The value shows up as `apiversion` in
+> `/mt-api?mode=api&sub=info`.
+
 ## Configuration & runtime
 
 1. Copy `sqlpasswd` to `/opt/api/data/.passwd/sqlpasswd` and store the MariaDB

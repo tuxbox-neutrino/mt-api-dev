@@ -4,7 +4,23 @@ Dies ist die Web-API, die vom Neutrino-Mediathek-Plugin abgefragt wird. Sie
 stellt JSON- und HTML-Ausgaben bereit, die auf einer MariaDB-Datenbank mit den
 aufbereiteten MediathekView-Daten basieren.
 
+## Inhaltsverzeichnis
+
+- [Schnellstart-Skript](#schnellstart-skript)
+- [Funktionen auf einen Blick](#funktionen-auf-einen-blick)
+- [Schnellstart (Docker)](#schnellstart-docker)
+- [Vorgefertigtes Docker-Image](#vorgefertigtes-docker-image)
+- [Voraussetzungen](#voraussetzungen)
+- [Manuelles Bauen](#manuelles-bauen)
+- [Konfiguration & Betrieb](#konfiguration--betrieb)
+- [Entwicklung & Tests](#entwicklung--tests)
+- [Versionierung](#versionierung)
+- [Support](#support)
+
 ## Schnellstart-Skript
+
+Nutze dieses Skript, wenn Importer und API möglichst automatisiert mit Docker
+aufgesetzt werden sollen.
 
 Ein Einzeiler richtet Importer + API automatisch ein:
 
@@ -26,6 +42,31 @@ Alle Werte lassen sich über Umgebungsvariablen anpassen:
 NETWORK_NAME=mein-netz MT_API_DB_HOST=db.example.org ./quickstart.sh
 ```
 
+Nach Abschluss des Skripts liegen neue Konfigurationsdateien in
+`config/importer/` (Importer), `config/api/` (SQL-Passwort) sowie die Downloads
+unter `data/importer/`. Importer und API laufen anschließend dauerhaft im
+Hintergrund (`--restart unless-stopped`). Überprüfe den Status zum Beispiel mit:
+
+```bash
+docker ps --filter name=mediathek
+curl http://localhost:18080/mt-api?mode=api&sub=info
+docker logs mediathek-importer
+docker logs mediathek-api
+```
+
+Wenn du Konfiguration oder Netzwerkparameter ändern möchtest, kannst du das
+Skript jederzeit erneut starten – bestehende Verzeichnisse werden wiederverwendet.
+
+Standardwerte des Skripts (über Umgebungsvariablen oder Eingaben anpassbar):
+
+- Docker-Netzwerk: `mediathek-net` (Bridge) bzw. bei `NETWORK_MODE=host` direkt
+  das Host-Netzwerk
+- API-Port auf dem Host: `18080`
+- Container-Namen: `mediathek-db`, `mediathek-importer`, `mediathek-api`
+- MariaDB-Zugangsdaten: Benutzer `root`, Passwort `example-root`
+- MariaDB-Host: `mediathek-db`, sofern die integrierte Datenbank gestartet wird,
+  andernfalls der Wert aus der Host-Abfrage
+
 ## Funktionen auf einen Blick
 
 - REST-ähnliche Endpunkte (`mode=api&sub=…`) für Filmlisten, Sender und
@@ -38,6 +79,9 @@ NETWORK_NAME=mein-netz MT_API_DB_HOST=db.example.org ./quickstart.sh
   ausschließlich gegen libc/pthread/dl.
 
 ## Schnellstart (Docker)
+
+Wenn du ohnehin im `neutrino-make`-Repository arbeitest, bildet dieser
+Compose-Stack die spätere Umgebung 1:1 ab.
 
 ```bash
 # Abhängige Projekte klonen (Importer + API)
@@ -62,6 +106,9 @@ Die dazugehörigen Compose-Dateien findest du im übergeordneten
 alleinstehende Builds siehe Abschnitt "Manuell bauen".
 
 ## Vorgefertigtes Docker-Image
+
+Für eigenständige Installationen (Raspberry Pi, Root-Server, Heimserver) kannst
+du direkt das veröffentlichte OCI-Image verwenden.
 
 Über GitHub Actions wird ein Multi-Arch-Image nach Docker Hub veröffentlicht:
 `docker pull dbt1/mt-api-dev:latest`. Es enthält Binary, statische Assets
@@ -131,6 +178,8 @@ Weitere Details zum Importer siehe README im Schwesterprojekt
 
 ## Voraussetzungen
 
+Für einen manuellen Build benötigst du folgende Werkzeuge und Bibliotheken.
+
 - GCC 10+ oder Clang 11+
 - MariaDB Connector/C (`libmariadb-dev`)
 - libcurl, libtidy, libjsoncpp, libboost-system, libfcgi
@@ -145,6 +194,8 @@ sudo apt install build-essential pkg-config git libmariadb-dev \
 ```
 
 ## Manuelles Bauen
+
+So kompilierst du das Projekt lokal mit GCC oder Clang:
 
 ```bash
 git clone https://github.com/tuxbox-neutrino/mt-api-dev.git
@@ -166,6 +217,8 @@ Installation kannst du `make install DESTDIR=/opt/api.dist` verwenden.
 
 ## Konfiguration & Betrieb
 
+Nach der Installation bindest du das Binary wie folgt in deinen Webserver ein:
+
 1. Kopiere `sqlpasswd` nach `/opt/api/data/.passwd/sqlpasswd` und trage den
    MariaDB-Benutzer ein, der Leserechte auf die Mediathek-Datenbank hat.
 2. `mt-api.cgi` erwartet die Umgebungsvariable `DOCUMENT_ROOT` (vom Webserver
@@ -179,6 +232,8 @@ Installation kannst du `make install DESTDIR=/opt/api.dist` verwenden.
 
 ## Entwicklung & Tests
 
+Diese Targets erleichtern die tägliche Entwicklung:
+
 - `make clean && make` – Neubau
 - `make css` – nur die SCSS-Dateien neu generieren
 - `make lint` – (WIP) geplanter Stil-Check
@@ -186,6 +241,9 @@ Installation kannst du `make install DESTDIR=/opt/api.dist` verwenden.
   `services/mediathek-backend`-Root.
 
 ## Versionierung
+
+Wir veröffentlichen getaggte Releases, damit das Plugin die Backend-Version
+prüfen kann.
 
 Wir folgen SemVer. Dieser Stand wurde als **v0.2.0** getaggt und enthält die
 Umstellung auf reine Standardbibliotheken sowie besser dokumentierte

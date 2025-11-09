@@ -4,7 +4,23 @@ This repository hosts the backend API consumed by the Neutrino Mediathek plugin.
 It exposes lightweight CGI/FastCGI endpoints that render JSON and HTML data
 based on the MediathekView catalogue stored in MariaDB.
 
+## Table of Contents
+
+- [Quickstart Script](#quickstart-script)
+- [Highlights](#highlights)
+- [Quickstart (Docker Compose)](#quickstart-docker-compose)
+- [Prebuilt Docker Image](#prebuilt-docker-image)
+- [Requirements](#requirements)
+- [Manual Build](#manual-build)
+- [Configuration & Runtime](#configuration--runtime)
+- [Development & Testing](#development--testing)
+- [Versioning](#versioning)
+- [Support](#support)
+
 ## Quickstart Script
+
+Use this interactive helper when you want one command to provision MariaDB, the
+importer and the API containers with sensible defaults.
 
 You can bootstrap importer + API with a single helper script:
 
@@ -27,6 +43,30 @@ You can override defaults via environment variables before launching:
 NETWORK_NAME=my-net MT_API_DB_HOST=db.example.org ./quickstart.sh
 ```
 
+After the script finishes you will see freshly generated configs inside
+`config/importer/` (importer settings), `config/api/` (SQL password) and cached
+downloads under `data/importer/`. The importer and API containers keep running
+in the background (`--restart unless-stopped`). Verify everything with:
+
+```bash
+docker ps --filter name=mediathek
+curl http://localhost:18080/mt-api?mode=api&sub=info
+docker logs mediathek-importer
+docker logs mediathek-api
+```
+
+Re-run `./quickstart.sh` whenever you want to regenerate configs or adjust the
+network/database parameters; it will reuse the existing folders.
+
+Default values used by the script (change them via env vars or prompts):
+
+- Docker network: `mediathek-net` (bridge mode) or `host` if `NETWORK_MODE=host`
+- API port: `18080` on the host
+- Container names: `mediathek-db`, `mediathek-importer`, `mediathek-api`
+- MariaDB credentials: user `root`, password `example-root`
+- MariaDB host: `mediathek-db` (when starting the bundled DB) or your answer to
+  the "MariaDB host" prompt
+
 ## Highlights
 
 - REST-ish endpoints (`mode=api&sub=…`) for programme lists, channels and
@@ -36,7 +76,10 @@ NETWORK_NAME=my-net MT_API_DB_HOST=db.example.org ./quickstart.sh
 - No external LLVM / Boost URI dependency anymore – the binary links only
   against libc/pthread/dl.
 
-## Quickstart (Docker)
+## Quickstart (Docker Compose)
+
+If you are hacking inside the `neutrino-make` repository, this compose stack
+mirrors the production topology and keeps every dependency local.
 
 ```bash
 # Clone importer/api sources once
@@ -60,6 +103,9 @@ The compose setup lives inside `services/mediathek-backend` of the
 `neutrino-make` repository. For standalone builds see "Manual build" below.
 
 ## Prebuilt Docker image
+
+For standalone deployments (Raspberry Pi, VPS, bare metal) you can run the
+published OCI image directly.
 
 GitHub Actions builds and pushes a multi-arch image to Docker Hub:
 `docker pull dbt1/mt-api-dev:latest`. It contains the compiled binary,
@@ -132,6 +178,8 @@ For importer details see the README in the companion repository
 
 ## Requirements
 
+Building from source requires the following toolchain and libraries.
+
 - GCC ≥ 10 or Clang ≥ 11
 - MariaDB Connector/C (`libmariadb-dev`)
 - libcurl, libtidy, libjsoncpp, libboost-system, libfcgi
@@ -146,6 +194,8 @@ sudo apt install build-essential pkg-config git libmariadb-dev \
 ```
 
 ## Manual build
+
+Compile everything locally with the usual GCC/Clang workflow:
 
 ```bash
 git clone https://github.com/tuxbox-neutrino/mt-api-dev.git
@@ -167,6 +217,8 @@ if you want to copy everything into a staging directory.
 
 ## Configuration & runtime
 
+Once installed, hook the binary into your web server via CGI/FastCGI:
+
 1. Copy `sqlpasswd` to `/opt/api/data/.passwd/sqlpasswd` and store the MariaDB
    user with read access to the Mediathek database.
 2. `mt-api.cgi` expects `DOCUMENT_ROOT` to be set by your web server and will
@@ -179,6 +231,8 @@ if you want to copy everything into a staging directory.
 
 ## Development & testing
 
+Use the provided helper targets while iterating on the sources:
+
 - `make clean && make` – rebuild
 - `make css` – regenerate only the SCSS/CSS assets
 - `make lint` – (WIP) upcoming style checks
@@ -186,6 +240,8 @@ if you want to copy everything into a staging directory.
   `services/mediathek-backend` directory.
 
 ## Versioning
+
+We publish tagged releases so the plugin can assert backend compatibility.
 
 We follow Semantic Versioning. This release is tagged **v0.2.0**, featuring the
 plain JSON responses and simplified dependency chain. See `git tag` for

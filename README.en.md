@@ -72,6 +72,11 @@ docker run --rm \
   --network mediathek-net \
   dbt1/mediathek-importer
 
+> Tip: replace `mediathek-net` with any existing Docker network (compose
+> stack). If you want to access a database on the host directly, use
+> `--network host`. Drop `--rm` and add `--name mediathek-importer` when you
+> want a long-running container that you can inspect via `docker logs`.
+
 docker run -d --name mt-api \
   --network mediathek-net \
   -p 18080:8080 \

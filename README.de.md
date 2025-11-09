@@ -74,6 +74,11 @@ docker run --rm \
   --network mediathek-net \
   dbt1/mediathek-importer
 
+> Hinweis: `mediathek-net` steht exemplarisch für ein vorhandenes Docker-Netz
+> (z. B. aus `docker compose`). Wenn du direkt auf den lokalen Host zugreifen
+> willst, kannst du stattdessen `--network host` verwenden. Für dauerhafte
+> Container einfach `--name <NAME>` setzen und `--rm` weglassen.
+
 docker run -d --name mt-api \
   --network mediathek-net \
   -p 18080:8080 \

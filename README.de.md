@@ -39,6 +39,23 @@ Die dazugehörigen Compose-Dateien findest du im übergeordneten
 `services/mediathek-backend`-Verzeichnis aus dem `neutrino-make` Projekt. Für
 alleinstehende Builds siehe Abschnitt "Manuell bauen".
 
+## Vorgefertigtes Docker-Image
+
+Über GitHub Actions wird ein Multi-Arch-Image nach Docker Hub veröffentlicht:
+`docker pull tuxboxneutrino/mt-api:latest`. Es enthält Binary, statische Assets
+und eine vorkonfigurierte lighttpd-Instanz. Verbinden kannst du es mit einer
+bestehenden MariaDB über:
+
+```bash
+docker run -d --name mt-api \
+  -e MT_API_DB_HOST=db.example.org \
+  -p 18080:8080 \
+  tuxboxneutrino/mt-api:latest
+```
+
+Optional lassen sich `/opt/api/data` und `/opt/api/log` per Volume persistieren.
+Details zum Build stehen in `.github/workflows/docker-publish.yml`.
+
 ## Voraussetzungen
 
 - GCC 10+ oder Clang 11+

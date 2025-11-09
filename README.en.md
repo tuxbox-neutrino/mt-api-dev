@@ -36,6 +36,23 @@ curl http://localhost:18080/mt-api?mode=api&sub=info
 The compose setup lives inside `services/mediathek-backend` of the
 `neutrino-make` repository. For standalone builds see "Manual build" below.
 
+## Prebuilt Docker image
+
+GitHub Actions builds and pushes a multi-arch image to Docker Hub:
+`docker pull tuxboxneutrino/mt-api:latest`. It contains the compiled binary,
+static assets and a lighttpd setup. Point it to an existing MariaDB instance:
+
+```bash
+docker run -d --name mt-api \
+  -e MT_API_DB_HOST=db.example.org \
+  -p 18080:8080 \
+  tuxboxneutrino/mt-api:latest
+```
+
+Persist `/opt/api/data` and `/opt/api/log` via volumes if you want to keep
+templates/logs across restarts. See `.github/workflows/docker-publish.yml`
+for the automated build definition.
+
 ## Requirements
 
 - GCC ≥ 10 or Clang ≥ 11

@@ -39,14 +39,14 @@ The compose setup lives inside `services/mediathek-backend` of the
 ## Prebuilt Docker image
 
 GitHub Actions builds and pushes a multi-arch image to Docker Hub:
-`docker pull dbt1/mt-api:latest`. It contains the compiled binary,
+`docker pull dbt1/mt-api-dev:latest`. It contains the compiled binary,
 static assets and a lighttpd setup. Point it to an existing MariaDB instance:
 
 ```bash
 docker run -d --name mt-api \
   -e MT_API_DB_HOST=db.example.org \
   -p 18080:8080 \
-  dbt1/mt-api:latest
+  dbt1/mt-api-dev:latest
 ```
 
 Persist `/opt/api/data` and `/opt/api/log` via volumes if you want to keep

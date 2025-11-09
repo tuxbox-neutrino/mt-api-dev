@@ -42,7 +42,7 @@ alleinstehende Builds siehe Abschnitt "Manuell bauen".
 ## Vorgefertigtes Docker-Image
 
 Über GitHub Actions wird ein Multi-Arch-Image nach Docker Hub veröffentlicht:
-`docker pull dbt1/mt-api:latest`. Es enthält Binary, statische Assets
+`docker pull dbt1/mt-api-dev:latest`. Es enthält Binary, statische Assets
 und eine vorkonfigurierte lighttpd-Instanz. Verbinden kannst du es mit einer
 bestehenden MariaDB über:
 
@@ -50,7 +50,7 @@ bestehenden MariaDB über:
 docker run -d --name mt-api \
   -e MT_API_DB_HOST=db.example.org \
   -p 18080:8080 \
-  dbt1/mt-api:latest
+  dbt1/mt-api-dev:latest
 ```
 
 Optional lassen sich `/opt/api/data` und `/opt/api/log` per Volume persistieren.

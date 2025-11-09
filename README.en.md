@@ -4,6 +4,24 @@ This repository hosts the backend API consumed by the Neutrino Mediathek plugin.
 It exposes lightweight CGI/FastCGI endpoints that render JSON and HTML data
 based on the MediathekView catalogue stored in MariaDB.
 
+## Architecture overview
+
+The backend is split into three independent building blocks:
+
+1. **MariaDB** – stores the MediathekView catalogue (`mediathek_1` tables). You
+   can reuse an existing database server or let the quickstart script spin up a
+   `mariadb:11.4` container.
+2. **Importer (`dbt1/mediathek-importer`)** – downloads the movie lists and
+   writes them into MariaDB. Run it once with `--update`, then periodically with
+   `--cron-mode` so the tables stay current.
+3. **API (`dbt1/mt-api-dev`)** – read-only component that exposes the data to
+   Neutrino via CGI/FastCGI. It must point to an already-populated MariaDB
+   instance via `MT_API_DB_HOST`, user and password.
+
+Because the API container does not embed a database, the typical installation
+order is **(1) start MariaDB → (2) run the importer → (3) start the API**. The
+`scripts/quickstart.sh` helper automates this sequence on a single host.
+
 ## Table of Contents
 
 - [Quickstart Script](#quickstart-script)

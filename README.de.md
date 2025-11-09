@@ -4,6 +4,24 @@ Dies ist die Web-API, die vom Neutrino-Mediathek-Plugin abgefragt wird. Sie
 stellt JSON- und HTML-Ausgaben bereit, die auf einer MariaDB-Datenbank mit den
 aufbereiteten MediathekView-Daten basieren.
 
+## Architektur-Überblick
+
+Das Gesamtsystem besteht aus drei Bausteinen:
+
+1. **MariaDB** – speichert die MediathekView-Daten (`mediathek_1` Tabellen).
+   Entweder nutzt du einen vorhandenen Server oder lässt das Schnellstart-Skript
+   einen `mariadb:11.4` Container starten.
+2. **Importer (`dbt1/mediathek-importer`)** – lädt die Filmlisten herunter und
+   schreibt sie in MariaDB. Einmalig `--update` ausführen, danach zyklisch per
+   `--cron-mode`, damit die Tabellen aktuell bleiben.
+3. **API (`dbt1/mt-api-dev`)** – arbeitet rein lesend und stellt die Daten über
+   CGI/FastCGI dem Neutrino-Plugin bereit. Sie benötigt eine bereits gefüllte
+   MariaDB-Instanz, erreichbar über `MT_API_DB_HOST` plus Benutzer/Passwort.
+
+Da der API-Container keine Datenbank enthält, lautet die empfohlene Reihenfolge
+**(1) MariaDB bereitstellen → (2) Importer laufen lassen → (3) API starten**.
+`scripts/quickstart.sh` automatisiert diese Abfolge auf einem Host.
+
 ## Inhaltsverzeichnis
 
 - [Schnellstart-Skript](#schnellstart-skript)

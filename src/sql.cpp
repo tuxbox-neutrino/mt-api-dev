@@ -36,6 +36,11 @@ void CSql::Init()
 	mysqlCon = NULL;
 	pwFile		= g_dataRoot + "/.passwd/sqlpasswd";
 	usedDB		= "mediathek_1";
+	const char* hostEnv = getenv("MT_API_DB_HOST");
+	if (hostEnv && *hostEnv)
+		mysqlHost = hostEnv;
+	else
+		mysqlHost = "127.0.0.1";
 	tabChannelinfo	= "channelinfo";
 	tabVersion	= "version";
 	tabVideo	= "video";
@@ -71,7 +76,8 @@ bool CSql::connectMysql()
 	unsigned long flags = 0;
 //	flags |= CLIENT_MULTI_STATEMENTS;
 //	flags |= CLIENT_COMPRESS;
-	if (!mysql_real_connect(mysqlCon, "127.0.0.1", v[0].c_str(), v[1].c_str(), usedDB.c_str(), 3306, NULL, flags)) {
+	const char* host = mysqlHost.c_str();
+	if (!mysql_real_connect(mysqlCon, host, v[0].c_str(), v[1].c_str(), usedDB.c_str(), 3306, NULL, flags)) {
 		show_error(__func__, __LINE__);
 		return false;
 	}

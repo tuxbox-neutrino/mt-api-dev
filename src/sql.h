@@ -22,6 +22,7 @@ class CSql
 		MYSQL *mysqlCon;
 		string pwFile;
 		string usedDB;
+		string mysqlHost;
 		string tabChannelinfo;
 		string tabVersion;
 		string tabVideo;

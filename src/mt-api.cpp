@@ -36,6 +36,7 @@
 #include <fstream>
 #include <sstream>
 #include <climits>
+#include <ctime>
 
 #include <jsoncpp/json/json.h>
 
@@ -53,11 +54,156 @@ const char*		g_progVersion;
 const char*		g_progCopyright;
 string			g_documentRoot;
 string			g_dataRoot;
+string			g_logRoot;
 bool			g_debugMode;
 int			g_apiMode;
 int			g_queryMode;
 string			g_msgBoxText;
 string			g_jsonError;
+
+static string sanitizeForLog(string value, size_t maxLen = 512)
+{
+	if (value.empty())
+		return "";
+
+	for (size_t i = 0; i < value.size(); ++i) {
+		if ((value[i] == '\n') || (value[i] == '\r') || (value[i] == '\t'))
+			value[i] = ' ';
+		else if (value[i] == '"')
+			value[i] = '\'';
+	}
+
+	if ((maxLen > 0) && (value.size() > maxLen)) {
+		value = value.substr(0, maxLen);
+		value += "...(truncated)";
+	}
+
+	return value;
+}
+
+static string getRequestLogFilePath()
+{
+	static string logFilePath = "";
+
+	if (!logFilePath.empty())
+		return logFilePath;
+
+	if (!g_logRoot.empty())
+		logFilePath = g_logRoot + "/mt-api.requests.log";
+
+	return logFilePath;
+}
+
+static void appendRequestLog(const string& message)
+{
+	string logFile = getRequestLogFilePath();
+	if (logFile.empty())
+		return;
+
+	ofstream logStream(logFile.c_str(), ios::app);
+	if (!logStream.good())
+		return;
+
+	time_t now = time(NULL);
+	struct tm tmNow;
+	char ts[32];
+	string timestamp;
+	if (localtime_r(&now, &tmNow) != NULL) {
+		strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%S%z", &tmNow);
+		timestamp = ts;
+	}
+	else {
+		timestamp = to_string(static_cast<long long>(now));
+	}
+
+	logStream << "[" << timestamp << "] " << message << endl;
+}
+
+static void logRequestStart(CNet* net, const string& mode)
+{
+	if (net == NULL)
+		return;
+
+	string method = sanitizeForLog(net->getEnv("REQUEST_METHOD"));
+	string uri = sanitizeForLog(net->getEnv("REQUEST_URI"), 1024);
+	string pathInfo = sanitizeForLog(net->getEnv("PATH_INFO"));
+	string scriptName = sanitizeForLog(net->getEnv("SCRIPT_NAME"));
+	string remoteAddr = sanitizeForLog(net->getEnv("REMOTE_ADDR"));
+	string userAgent = sanitizeForLog(net->getEnv("HTTP_USER_AGENT"), 256);
+	string host = sanitizeForLog(net->getEnv("HTTP_HOST"));
+	string query = sanitizeForLog(net->getEnv("QUERY_STRING"));
+	string modeVal = sanitizeForLog(mode);
+
+	stringstream ss;
+	ss << "event=request-start pid=" << getpid();
+	if (!remoteAddr.empty())
+		ss << " remote=\"" << remoteAddr << "\"";
+	if (!host.empty())
+		ss << " host=\"" << host << "\"";
+	if (!method.empty())
+		ss << " method=" << method;
+	if (!uri.empty())
+		ss << " uri=\"" << uri << "\"";
+	if (!pathInfo.empty())
+		ss << " path_info=\"" << pathInfo << "\"";
+	if (!scriptName.empty())
+		ss << " script=\"" << scriptName << "\"";
+	if (!query.empty())
+		ss << " query=\"" << query << "\"";
+	if (!modeVal.empty())
+		ss << " mode=\"" << modeVal << "\"";
+	if (!userAgent.empty())
+		ss << " ua=\"" << userAgent << "\"";
+
+	appendRequestLog(ss.str());
+}
+
+static void logRequestTarget(CNet* net, const string& mode, const string& submode)
+{
+	if (net == NULL)
+		return;
+
+	string modeVal = sanitizeForLog(mode);
+	string subVal = sanitizeForLog(submode);
+	if (modeVal.empty() && subVal.empty())
+		return;
+
+	string remoteAddr = sanitizeForLog(net->getEnv("REMOTE_ADDR"));
+
+	stringstream ss;
+	ss << "event=request-target pid=" << getpid();
+	if (!remoteAddr.empty())
+		ss << " remote=\"" << remoteAddr << "\"";
+	if (!modeVal.empty())
+		ss << " mode=\"" << modeVal << "\"";
+	if (!subVal.empty())
+		ss << " sub=\"" << subVal << "\"";
+
+	appendRequestLog(ss.str());
+}
+
+static void logRequestPayload(CNet* net, const string& mode, const string& submode, const string& payload)
+{
+	if ((net == NULL) || payload.empty())
+		return;
+
+	string remoteAddr = sanitizeForLog(net->getEnv("REMOTE_ADDR"));
+	string modeVal = sanitizeForLog(mode);
+	string subVal = sanitizeForLog(submode);
+	string payloadVal = sanitizeForLog(payload, 4096);
+
+	stringstream ss;
+	ss << "event=request-payload pid=" << getpid();
+	if (!remoteAddr.empty())
+		ss << " remote=\"" << remoteAddr << "\"";
+	if (!modeVal.empty())
+		ss << " mode=\"" << modeVal << "\"";
+	if (!subVal.empty())
+		ss << " sub=\"" << subVal << "\"";
+	ss << " data1=\"" << payloadVal << "\"";
+
+	appendRequestLog(ss.str());
+}
 
 void myExit(int val);
 
@@ -111,7 +257,9 @@ void CMtApi::Init()
 //#endif
 
 	g_documentRoot  = cnet->getEnv("DOCUMENT_ROOT");
-	g_dataRoot	= getPathName(g_documentRoot) + "/data";
+	string installRoot = getPathName(g_documentRoot);
+	g_dataRoot	= installRoot + "/data";
+	g_logRoot	= installRoot + "/log";
 	g_progName	= PROGNAME;
 	g_progNameShort	= PROGNAMESHORT;
 	g_progCopyright	= COPYRIGHT;
@@ -120,6 +268,8 @@ void CMtApi::Init()
 	chtml		= new CHtml();
 	cjson		= new CJson();
 	csql		= new CSql();
+
+	logRequestStart(cnet, queryString_mode);
 }
 
 CMtApi::~CMtApi()
@@ -146,6 +296,7 @@ int CMtApi::run(int, char**)
 
 	if (strEqual(queryString_mode, "api")) {
 		queryString_submode = cnet->getGetValue(getData, "sub");
+		logRequestTarget(cnet, queryString_mode, queryString_submode);
 		if (strEqual(queryString_submode, "info")) {
 			g_queryMode = queryMode_Info;
 			if (!g_debugMode) {
@@ -182,6 +333,8 @@ int CMtApi::run(int, char**)
 				cnet->splitPostInput(inData, postData);
 				if (!postData.empty())
 					inJsonData = cnet->getPostValue(postData, "data1");
+				if (!postData.empty() && !inJsonData.empty())
+					logRequestPayload(cnet, queryString_mode, queryString_submode, inJsonData);
 			}
 			if (inJsonData.empty())
 				inJsonData = readFile(g_dataRoot + "/template/test_1.json");

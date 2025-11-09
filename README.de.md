@@ -47,9 +47,17 @@ und eine vorkonfigurierte lighttpd-Instanz. Verbinden kannst du es mit einer
 bestehenden MariaDB über:
 
 ```bash
-# Image für amd64/arm64 aktualisieren
-docker pull dbt1/mt-api-dev:latest
+docker run -d --name mt-api \
+  -e MT_API_DB_HOST=db.example.org \
+  -p 18080:8080 \
+  dbt1/mt-api-dev:latest
+```
 
+Ein Update läuft ebenfalls über `docker pull` + Neustart:
+
+```bash
+docker pull dbt1/mt-api-dev:latest
+docker stop mt-api && docker rm mt-api
 docker run -d --name mt-api \
   -e MT_API_DB_HOST=db.example.org \
   -p 18080:8080 \

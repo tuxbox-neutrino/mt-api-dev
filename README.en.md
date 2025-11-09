@@ -43,9 +43,17 @@ GitHub Actions builds and pushes a multi-arch image to Docker Hub:
 static assets and a lighttpd setup. Point it to an existing MariaDB instance:
 
 ```bash
-# pull/update the image (linux/amd64 + linux/arm64)
-docker pull dbt1/mt-api-dev:latest
+docker run -d --name mt-api \
+  -e MT_API_DB_HOST=db.example.org \
+  -p 18080:8080 \
+  dbt1/mt-api-dev:latest
+```
 
+To update an existing deployment simply pull the new image and restart:
+
+```bash
+docker pull dbt1/mt-api-dev:latest
+docker stop mt-api && docker rm mt-api
 docker run -d --name mt-api \
   -e MT_API_DB_HOST=db.example.org \
   -p 18080:8080 \

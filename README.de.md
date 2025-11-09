@@ -14,10 +14,13 @@ chmod +x quickstart.sh
 ./quickstart.sh
 ```
 
-Dazu `config/importer` anlegen und `mv2mariadb.conf` sowie `pw_mariadb`
-hineinkopieren. Das Skript zieht die Docker-Images, führt `--update` aus und
-startet anschließend beide Container. Netzwerk/DB-Host lassen sich über
-Umgebungsvariablen steuern:
+Während der Ausführung fragt das Skript nach MariaDB-Host/-Benutzer/-Passwort
+(Standard: `root` / `example-root`). Auf Wunsch startet es automatisch einen
+lokalen MariaDB-Container (`mariadb:11.4`), legt die benötigten Dateien unter
+`config/importer/` bzw. `config/api/` an, zieht die Docker-Images und startet
+anschließend Importer **und** API mit `--restart unless-stopped`.
+
+Alle Werte lassen sich über Umgebungsvariablen anpassen:
 
 ```bash
 NETWORK_NAME=mein-netz MT_API_DB_HOST=db.example.org ./quickstart.sh

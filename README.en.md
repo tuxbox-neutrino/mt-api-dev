@@ -14,10 +14,14 @@ chmod +x quickstart.sh
 ./quickstart.sh
 ```
 
-The script expects `config/importer/mv2mariadb.conf` and `config/importer/pw_mariadb`
-in the working directory (create `config/importer` and drop your existing files there).
-It pulls the Docker images, runs the importer once with `--update`, then starts
-long-running importer and API containers. You can override defaults via env vars:
+During the run you will be asked for the MariaDB host/user/password (defaults:
+`root`/`example-root`). The script can optionally start a local MariaDB
+container (`mariadb:11.4`), generates the importer config under
+`config/importer/` plus the API `sqlpasswd` under `config/api/`, pulls the Docker
+images and finally launches long-running importer **and** API containers with
+`--restart unless-stopped`.
+
+You can override defaults via environment variables before launching:
 
 ```bash
 NETWORK_NAME=my-net MT_API_DB_HOST=db.example.org ./quickstart.sh

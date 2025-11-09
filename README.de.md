@@ -70,6 +70,9 @@ Details zum Build stehen in `.github/workflows/docker-publish.yml`.
 Beispiel kompletter Ablauf (Raspberry Pi oder PC) zusammen mit dem Importer:
 
 ```bash
+# Komplettstart über Skript
+./scripts/quickstart.sh
+
 docker run --rm \
   -v $PWD/config/importer:/opt/importer/config \
   -v $PWD/data/importer:/opt/importer/bin/dl \
@@ -100,6 +103,9 @@ Kommandos funktionieren daher auf Desktop-PCs und Raspberry Pi.
 Die Umgebungsvariable `MT_API_DB_HOST` muss auf den MariaDB-Server zeigen, der
 die importierten Tabellen bereitstellt (Hostname oder IP). Bei `--network host`
 entsprechend `MT_API_DB_HOST=localhost` oder die tatsächliche IP setzen.
+
+Weitere Details zum Importer siehe README im Schwesterprojekt
+`tuxbox-neutrino/db-import` (lokal: `services/mediathek-backend/vendor/db-import/README.md`).
 
 ## Voraussetzungen
 

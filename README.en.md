@@ -67,6 +67,10 @@ for the automated build definition.
 Typical RasPi/PC setup together with the importer:
 
 ```bash
+# run everything via helper script
+# (creates config/data directories relative to current working dir)
+./scripts/quickstart.sh
+
 # MariaDB reachable under network name "db" (docker compose or host IP)
 docker run --rm \
   -v $PWD/config/importer:/opt/importer/config \
@@ -99,6 +103,9 @@ The environment variable `MT_API_DB_HOST` must point to the MariaDB instance
 that contains the imported Mediathek tables (host name or IP). When you run the
 API via `--network host`, use `MT_API_DB_HOST=localhost` or the actual IP
 address of your database server.
+
+For importer details see the README in the companion repository
+`tuxbox-neutrino/db-import` (local checkout under `services/mediathek-backend/vendor/db-import/README.md`).
 
 ## Requirements
 

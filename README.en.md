@@ -55,10 +55,11 @@ container (`mariadb:11.4`), generates the importer config under
 images and finally launches long-running importer **and** API containers with
 `--restart unless-stopped`.
 
-You can override defaults via environment variables before launching:
+You can override defaults via environment variables before launching, for
+example when your MariaDB already runs on the host:
 
 ```bash
-NETWORK_NAME=my-net MT_API_DB_HOST=db.example.org ./quickstart.sh
+NETWORK_NAME=bridge MT_API_DB_HOST=192.168.1.50 ./quickstart.sh
 ```
 
 After the script finishes you will see freshly generated configs inside
@@ -131,10 +132,18 @@ static assets and a lighttpd setup. Point it to an existing MariaDB instance:
 
 ```bash
 docker run -d --name mt-api \
-  -e MT_API_DB_HOST=db.example.org \
+  -e MT_API_DB_HOST=db \
   -p 18080:8080 \
   dbt1/mt-api-dev:latest
 ```
+
+Use a host name that matches your scenario:
+
+- `db` – common when a Docker compose stack exposes MariaDB under that service
+  name.
+- `127.0.0.1` / `localhost` – when the API runs with `--network host` on the
+  same machine as MariaDB.
+- `192.168.1.50` – typical for a separate VM/NAS in the home network.
 
 To update an existing deployment simply pull the new image and restart:
 
@@ -142,7 +151,7 @@ To update an existing deployment simply pull the new image and restart:
 docker pull dbt1/mt-api-dev:latest
 docker stop mt-api && docker rm mt-api
 docker run -d --name mt-api \
-  -e MT_API_DB_HOST=db.example.org \
+  -e MT_API_DB_HOST=192.168.1.50 \
   -p 18080:8080 \
   dbt1/mt-api-dev:latest
 ```

@@ -54,10 +54,11 @@ lokalen MariaDB-Container (`mariadb:11.4`), legt die benötigten Dateien unter
 `config/importer/` bzw. `config/api/` an, zieht die Docker-Images und startet
 anschließend Importer **und** API mit `--restart unless-stopped`.
 
-Alle Werte lassen sich über Umgebungsvariablen anpassen:
+Alle Werte lassen sich über Umgebungsvariablen anpassen – z. B. wenn MariaDB
+schon auf dem Host läuft:
 
 ```bash
-NETWORK_NAME=mein-netz MT_API_DB_HOST=db.example.org ./quickstart.sh
+NETWORK_MODE=host MT_API_DB_HOST=192.168.1.50 ./quickstart.sh
 ```
 
 Nach Abschluss des Skripts liegen neue Konfigurationsdateien in
@@ -135,10 +136,17 @@ bestehenden MariaDB über:
 
 ```bash
 docker run -d --name mt-api \
-  -e MT_API_DB_HOST=db.example.org \
+  -e MT_API_DB_HOST=db \
   -p 18080:8080 \
   dbt1/mt-api-dev:latest
 ```
+
+Wähle dabei einen Hostnamen, der zu deiner Umgebung passt:
+
+- `db` – Standardname innerhalb eines Docker-Compose-Netzes.
+- `127.0.0.1` / `localhost` – wenn API und MariaDB auf demselben Host mit
+  `--network host` laufen.
+- `192.168.1.50` – typisches Beispiel für einen externen Server im Heimnetz.
 
 Ein Update läuft ebenfalls über `docker pull` + Neustart:
 
@@ -146,7 +154,7 @@ Ein Update läuft ebenfalls über `docker pull` + Neustart:
 docker pull dbt1/mt-api-dev:latest
 docker stop mt-api && docker rm mt-api
 docker run -d --name mt-api \
-  -e MT_API_DB_HOST=db.example.org \
+  -e MT_API_DB_HOST=192.168.1.50 \
   -p 18080:8080 \
   dbt1/mt-api-dev:latest
 ```

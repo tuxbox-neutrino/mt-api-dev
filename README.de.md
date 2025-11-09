@@ -97,6 +97,10 @@ docker run -d --name mt-api \
 Die Images sind als Multi-Arch-Builds verfügbar (amd64 & arm64) – die gleichen
 Kommandos funktionieren daher auf Desktop-PCs und Raspberry Pi.
 
+Die Umgebungsvariable `MT_API_DB_HOST` muss auf den MariaDB-Server zeigen, der
+die importierten Tabellen bereitstellt (Hostname oder IP). Bei `--network host`
+entsprechend `MT_API_DB_HOST=localhost` oder die tatsächliche IP setzen.
+
 ## Voraussetzungen
 
 - GCC 10+ oder Clang 11+

@@ -95,6 +95,11 @@ docker run -d --name mt-api \
 All images are built as multi-architecture OCI images, so the same commands
 work on amd64 PCs and arm64 Raspberry Pis.
 
+The environment variable `MT_API_DB_HOST` must point to the MariaDB instance
+that contains the imported Mediathek tables (host name or IP). When you run the
+API via `--network host`, use `MT_API_DB_HOST=localhost` or the actual IP
+address of your database server.
+
 ## Requirements
 
 - GCC ≥ 10 or Clang ≥ 11

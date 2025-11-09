@@ -4,6 +4,25 @@ Dies ist die Web-API, die vom Neutrino-Mediathek-Plugin abgefragt wird. Sie
 stellt JSON- und HTML-Ausgaben bereit, die auf einer MariaDB-Datenbank mit den
 aufbereiteten MediathekView-Daten basieren.
 
+## Schnellstart-Skript
+
+Ein Einzeiler richtet Importer + API automatisch ein:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mt-api-dev/master/scripts/quickstart.sh -o quickstart.sh
+chmod +x quickstart.sh
+./quickstart.sh
+```
+
+Dazu `config/importer` anlegen und `mv2mariadb.conf` sowie `pw_mariadb`
+hineinkopieren. Das Skript zieht die Docker-Images, führt `--update` aus und
+startet anschließend beide Container. Netzwerk/DB-Host lassen sich über
+Umgebungsvariablen steuern:
+
+```bash
+NETWORK_NAME=mein-netz MT_API_DB_HOST=db.example.org ./quickstart.sh
+```
+
 ## Funktionen auf einen Blick
 
 - REST-ähnliche Endpunkte (`mode=api&sub=…`) für Filmlisten, Sender und

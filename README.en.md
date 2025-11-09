@@ -4,6 +4,25 @@ This repository hosts the backend API consumed by the Neutrino Mediathek plugin.
 It exposes lightweight CGI/FastCGI endpoints that render JSON and HTML data
 based on the MediathekView catalogue stored in MariaDB.
 
+## Quickstart Script
+
+You can bootstrap importer + API with a single helper script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mt-api-dev/master/scripts/quickstart.sh -o quickstart.sh
+chmod +x quickstart.sh
+./quickstart.sh
+```
+
+The script expects `config/importer/mv2mariadb.conf` and `config/importer/pw_mariadb`
+in the working directory (create `config/importer` and drop your existing files there).
+It pulls the Docker images, runs the importer once with `--update`, then starts
+long-running importer and API containers. You can override defaults via env vars:
+
+```bash
+NETWORK_NAME=my-net MT_API_DB_HOST=db.example.org ./quickstart.sh
+```
+
 ## Highlights
 
 - REST-ish endpoints (`mode=api&sub=…`) for programme lists, channels and

@@ -47,6 +47,9 @@ und eine vorkonfigurierte lighttpd-Instanz. Verbinden kannst du es mit einer
 bestehenden MariaDB über:
 
 ```bash
+# Image für amd64/arm64 aktualisieren
+docker pull dbt1/mt-api-dev:latest
+
 docker run -d --name mt-api \
   -e MT_API_DB_HOST=db.example.org \
   -p 18080:8080 \
@@ -55,6 +58,31 @@ docker run -d --name mt-api \
 
 Optional lassen sich `/opt/api/data` und `/opt/api/log` per Volume persistieren.
 Details zum Build stehen in `.github/workflows/docker-publish.yml`.
+
+Beispiel kompletter Ablauf (Raspberry Pi oder PC) zusammen mit dem Importer:
+
+```bash
+docker run --rm \
+  -v $PWD/config/importer:/opt/importer/config \
+  -v $PWD/data/importer:/opt/importer/bin/dl \
+  --network mediathek-net \
+  dbt1/mediathek-importer --update
+
+docker run --rm \
+  -v $PWD/config/importer:/opt/importer/config \
+  -v $PWD/data/importer:/opt/importer/bin/dl \
+  --network mediathek-net \
+  dbt1/mediathek-importer
+
+docker run -d --name mt-api \
+  --network mediathek-net \
+  -p 18080:8080 \
+  -e MT_API_DB_HOST=db \
+  dbt1/mt-api-dev:latest
+```
+
+Die Images sind als Multi-Arch-Builds verfügbar (amd64 & arm64) – die gleichen
+Kommandos funktionieren daher auf Desktop-PCs und Raspberry Pi.
 
 ## Voraussetzungen
 

@@ -43,6 +43,9 @@ GitHub Actions builds and pushes a multi-arch image to Docker Hub:
 static assets and a lighttpd setup. Point it to an existing MariaDB instance:
 
 ```bash
+# pull/update the image (linux/amd64 + linux/arm64)
+docker pull dbt1/mt-api-dev:latest
+
 docker run -d --name mt-api \
   -e MT_API_DB_HOST=db.example.org \
   -p 18080:8080 \
@@ -52,6 +55,32 @@ docker run -d --name mt-api \
 Persist `/opt/api/data` and `/opt/api/log` via volumes if you want to keep
 templates/logs across restarts. See `.github/workflows/docker-publish.yml`
 for the automated build definition.
+
+Typical RasPi/PC setup together with the importer:
+
+```bash
+# MariaDB reachable under network name "db" (docker compose or host IP)
+docker run --rm \
+  -v $PWD/config/importer:/opt/importer/config \
+  -v $PWD/data/importer:/opt/importer/bin/dl \
+  --network mediathek-net \
+  dbt1/mediathek-importer --update
+
+docker run --rm \
+  -v $PWD/config/importer:/opt/importer/config \
+  -v $PWD/data/importer:/opt/importer/bin/dl \
+  --network mediathek-net \
+  dbt1/mediathek-importer
+
+docker run -d --name mt-api \
+  --network mediathek-net \
+  -p 18080:8080 \
+  -e MT_API_DB_HOST=db \
+  dbt1/mt-api-dev:latest
+```
+
+All images are built as multi-architecture OCI images, so the same commands
+work on amd64 PCs and arm64 Raspberry Pis.
 
 ## Requirements
 

@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_VERSION="0.2.0"
+
+if [[ "${1:-}" == "--version" ]]; then
+  echo "quickstart.sh version ${SCRIPT_VERSION}"
+  exit 0
+fi
+
+echo "[quickstart] Script version ${SCRIPT_VERSION}"
+
 if ! command -v docker >/dev/null 2>&1; then
   echo "[quickstart] docker is required."
   exit 1

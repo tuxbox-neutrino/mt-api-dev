@@ -85,9 +85,11 @@ ensure_db_user() {
   if [[ "${user}" == "root" ]]; then
     return 0
   fi
-  if ! docker exec "${container}" mariadb -uroot -p"${root_pass}" >/dev/null 2>&1 <<SQL
+  if ! docker exec -i "${container}" mariadb -uroot -p"${root_pass}" >/dev/null 2>&1 <<SQL
 CREATE USER IF NOT EXISTS '${user}'@'%' IDENTIFIED BY '${pass}';
-GRANT ALL ON mediathek_%.* TO '${user}'@'%';
+GRANT ALL ON ${VIDEO_DB_NAME}.* TO '${user}'@'%';
+GRANT ALL ON ${VIDEO_DB_TEMPLATE_NAME}.* TO '${user}'@'%';
+GRANT ALL ON ${VIDEO_DB_TMP1_NAME}.* TO '${user}'@'%';
 FLUSH PRIVILEGES;
 SQL
   then
@@ -159,6 +161,8 @@ VIDEO_DB_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb")
 VIDEO_DB_TEMPLATE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDbTemplate")
 VIDEO_DB_NAME=${VIDEO_DB_NAME:-mediathek_1}
 VIDEO_DB_TEMPLATE_NAME=${VIDEO_DB_TEMPLATE_NAME:-mediathek_1_template}
+VIDEO_DB_TMP1_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDbTmp1")
+VIDEO_DB_TMP1_NAME=${VIDEO_DB_TMP1_NAME:-mediathek_1_tmp1}
 VIDEO_TABLE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb_TableVideo")
 INFO_TABLE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb_TableInfo")
 VERSION_TABLE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb_TableVersion")
@@ -221,6 +225,7 @@ if [[ "${START_DB,,}" =~ ^(y|)$ ]]; then
   docker exec -i mediathek-db mariadb -uroot -p"${DB_ROOT_PASS}" >/dev/null 2>&1 <<SQL
 CREATE DATABASE IF NOT EXISTS ${VIDEO_DB_NAME};
 CREATE DATABASE IF NOT EXISTS ${VIDEO_DB_TEMPLATE_NAME};
+CREATE DATABASE IF NOT EXISTS ${VIDEO_DB_TMP1_NAME};
 USE ${VIDEO_DB_NAME};
 CREATE TABLE IF NOT EXISTS ${VIDEO_TABLE_NAME} LIKE ${VIDEO_DB_TEMPLATE_NAME}.${VIDEO_TABLE_NAME};
 CREATE TABLE IF NOT EXISTS ${INFO_TABLE_NAME} LIKE ${VIDEO_DB_TEMPLATE_NAME}.${INFO_TABLE_NAME};

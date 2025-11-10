@@ -240,7 +240,8 @@ void CMtApi::Init()
 	cnet->readGetData(inData);
 	cnet->splitGetInput(inData, getData);
 	queryString_mode = cnet->getGetValue(getData, "mode");
-	if (queryString_mode.empty() || strEqual(queryString_mode, "index")) {
+	const string modeLowerInit = str_tolower(queryString_mode);
+	if (modeLowerInit.empty() || strEqual(modeLowerInit, "index")) {
 		indexMode = true;
 	}
 	string tmp_s = cnet->getEnv("SERVER_NAME");
@@ -296,10 +297,12 @@ int CMtApi::run(int, char**)
 
 	csql->connectMysql();
 
-	if (strEqual(queryString_mode, "api")) {
+	const string modeLower = str_tolower(queryString_mode);
+	if (strEqual(modeLower, "api")) {
 		queryString_submode = cnet->getGetValue(getData, "sub");
+		const string subLower = str_tolower(queryString_submode);
 		logRequestTarget(cnet, queryString_mode, queryString_submode);
-		if (strEqual(queryString_submode, "info")) {
+		if (strEqual(subLower, "info")) {
 			g_queryMode = queryMode_Info;
 			if (!g_debugMode) {
 				progInfo_t pi;
@@ -309,7 +312,7 @@ int CMtApi::run(int, char**)
 				return 0;
 			}
 		}
-		else if (strEqual(queryString_submode, "listLivestream")) {
+		else if (strEqual(subLower, "listlivestream")) {
 			g_queryMode = queryMode_listLivestreams;
 			if (!g_debugMode) {
 				vector<livestreams_t> ls;
@@ -318,7 +321,7 @@ int CMtApi::run(int, char**)
 				return 0;
 			}
 		}
-		else if (strEqual(queryString_submode, "listChannels")) {
+		else if (strEqual(subLower, "listchannels")) {
 			g_queryMode = queryMode_listChannels;
 			if (!g_debugMode) {
 				vector<channels_t> ch;

@@ -107,6 +107,9 @@ Default values used by the script (change them via env vars or prompts):
   initialisation. The spinner shown after “Waiting for MariaDB …” indicates that
   the script is still polling the container; it will only continue once a ping
   succeeds (or abort after the timeout).
+- Right after `--update` the helper automatically runs `mv2mariadb --force-convert`
+  once so the database is seeded with the latest movie list. This step can take
+  several minutes and downloads ~2 GB of data on the first run.
 - If the script had to abort, you can manually resume the same steps:
   1. `docker ps` and `docker logs mediathek-db` to ensure the DB is running.
   2. `docker run --rm … dbt1/mediathek-importer --update` to bootstrap tables.

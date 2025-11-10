@@ -108,6 +108,9 @@ Standardwerte des Skripts (über Umgebungsvariablen oder Eingaben anpassbar):
   90 Sekunden. Der Spinner hinter „Waiting for MariaDB …“ signalisiert, dass das
   Skript weiter Polling betreibt; erst nach erfolgreichem Ping geht es mit dem
   Importer weiter.
+- Direkt nach `--update` führt das Skript automatisch einmal `mv2mariadb --force-convert`
+  aus und befüllt damit `mediathek_1` mit der aktuellen Filmliste (Download ~2 GB,
+  Dauer je nach Bandbreite mehrere Minuten).
 - Musste das Skript abbrechen, kannst du die Schritte manuell fortsetzen:
   1. Mit `docker ps` und `docker logs mediathek-db` sicherstellen, dass MariaDB
      läuft.

@@ -97,6 +97,25 @@ SQL
   echo "[quickstart] Created/updated MariaDB user '${user}'."
 }
 
+ensure_config_value() {
+  local file="$1" key="$2" value="$3"
+  if [[ ! -f "${file}" ]]; then
+    echo "${key}=${value}" >> "${file}"
+    return
+  fi
+  if grep -q "^${key}=" "${file}"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "${file}"
+  else
+    echo "${key}=${value}" >> "${file}"
+  fi
+}
+
+get_config_value() {
+  local file="$1" key="$2" value
+  value=$(grep "^${key}=" "${file}" | tail -n1 | cut -d'=' -f2-)
+  echo "${value}"
+}
+
 if [[ "${NETWORK_MODE}" == "host" ]]; then
   IMPORTER_NET_ARGS=(--network host)
   API_NET_ARGS=(--network host)
@@ -132,6 +151,20 @@ videoDb_TableVideo=video
 EOF
   echo "[quickstart] Generated ${CONFIG_DIR}/mv2mariadb.conf"
 fi
+
+ensure_config_value "${CONFIG_DIR}/mv2mariadb.conf" "testMode" "false"
+ensure_config_value "${CONFIG_DIR}/mv2mariadb.conf" "testLabel" "_TEST"
+
+VIDEO_DB_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb")
+VIDEO_DB_TEMPLATE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDbTemplate")
+VIDEO_DB_NAME=${VIDEO_DB_NAME:-mediathek_1}
+VIDEO_DB_TEMPLATE_NAME=${VIDEO_DB_TEMPLATE_NAME:-mediathek_1_template}
+VIDEO_TABLE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb_TableVideo")
+INFO_TABLE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb_TableInfo")
+VERSION_TABLE_NAME=$(get_config_value "${CONFIG_DIR}/mv2mariadb.conf" "videoDb_TableVersion")
+VIDEO_TABLE_NAME=${VIDEO_TABLE_NAME:-video}
+INFO_TABLE_NAME=${INFO_TABLE_NAME:-channelinfo}
+VERSION_TABLE_NAME=${VERSION_TABLE_NAME:-version}
 
 printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${CONFIG_DIR}/pw_mariadb"
 chmod 600 "${CONFIG_DIR}/pw_mariadb"
@@ -181,6 +214,42 @@ for i in {1..5}; do
 done
 if [[ "${update_success}" -ne 1 ]]; then
   echo "[quickstart] Importer --update failed after multiple attempts."
+  exit 1
+fi
+
+if [[ "${START_DB,,}" =~ ^(y|)$ ]]; then
+  docker exec -i mediathek-db mariadb -uroot -p"${DB_ROOT_PASS}" >/dev/null 2>&1 <<SQL
+CREATE DATABASE IF NOT EXISTS ${VIDEO_DB_NAME};
+CREATE DATABASE IF NOT EXISTS ${VIDEO_DB_TEMPLATE_NAME};
+USE ${VIDEO_DB_NAME};
+CREATE TABLE IF NOT EXISTS ${VIDEO_TABLE_NAME} LIKE ${VIDEO_DB_TEMPLATE_NAME}.${VIDEO_TABLE_NAME};
+CREATE TABLE IF NOT EXISTS ${INFO_TABLE_NAME} LIKE ${VIDEO_DB_TEMPLATE_NAME}.${INFO_TABLE_NAME};
+CREATE TABLE IF NOT EXISTS ${VERSION_TABLE_NAME} LIKE ${VIDEO_DB_TEMPLATE_NAME}.${VERSION_TABLE_NAME};
+SQL
+  if [[ $? -ne 0 ]]; then
+    echo "[quickstart] Failed to sync schema into ${VIDEO_DB_NAME}."
+    exit 1
+  fi
+else
+  echo "[quickstart] Ensure database ${VIDEO_DB_NAME} already contains the required tables on ${DB_HOST}."
+fi
+
+echo "[quickstart] Seeding database via importer --force-convert (first run)..."
+seed_success=0
+for i in {1..5}; do
+  if docker run --rm \
+      -v "${CONFIG_DIR}:/opt/importer/config" \
+      -v "${DATA_DIR}:/opt/importer/bin/dl" \
+      "${IMPORTER_NET_ARGS[@]}" \
+      dbt1/mediathek-importer --force-convert; then
+    seed_success=1
+    break
+  fi
+  echo "[quickstart] Importer --force-convert failed (attempt $i/5). Retrying in 30s..."
+  sleep 30
+done
+if [[ "${seed_success}" -ne 1 ]]; then
+  echo "[quickstart] Importer --force-convert failed after multiple attempts."
   exit 1
 fi
 

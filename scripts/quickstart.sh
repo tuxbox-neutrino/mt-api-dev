@@ -39,6 +39,15 @@ DB_USER="${DB_USER:-root}"
 DB_PASS="${DB_PASS:-example-root}"
 prompt DB_USER "MariaDB user" "${DB_USER}"
 prompt_secret DB_PASS "MariaDB password" "${DB_PASS}"
+DB_ROOT_PASS="${DB_ROOT_PASS:-${DB_PASS}}"
+
+if [[ "${DB_USER}" == "root" && "${DB_PASS}" == "example-root" ]]; then
+  cat <<'EOF'
+[quickstart] WARNING: You chose the default root/example-root credentials.
+[quickstart] This is fine for local testing, but DO NOT expose the service
+[quickstart] publicly before changing both user and password.
+EOF
+fi
 
 start_db_default="Y"
 read -r -p "Start bundled MariaDB container? [Y/n]: " START_DB
@@ -51,6 +60,42 @@ else
 fi
 
 API_DB_HOST="${MT_API_DB_HOST:-${DB_HOST}}"
+
+wait_for_db_container() {
+  local container="$1" root_pass="$2" timeout="${3:-120}"
+  local elapsed=0
+  local spinner='|/-\'
+  printf "[quickstart] Waiting for MariaDB in container '%s'..." "${container}"
+  while (( elapsed < timeout )); do
+    if docker exec "${container}" mariadb-admin -uroot -p"${root_pass}" ping >/dev/null 2>&1; then
+      printf "\r[quickstart] MariaDB is ready after %ds.%-20s\n" "${elapsed}" ""
+      return 0
+    fi
+    local frame=$(((elapsed/2) % 4))
+    printf "\r[quickstart] Waiting for MariaDB %c (elapsed %ds)" "${spinner:frame:1}" "${elapsed}"
+    sleep 2
+    ((elapsed+=2))
+  done
+  printf "\n[quickstart] MariaDB did not become ready within %ds.\n" "${timeout}"
+  return 1
+}
+
+ensure_db_user() {
+  local container="$1" user="$2" pass="$3" root_pass="$4"
+  if [[ "${user}" == "root" ]]; then
+    return 0
+  fi
+  if ! docker exec "${container}" mariadb -uroot -p"${root_pass}" >/dev/null 2>&1 <<SQL
+CREATE USER IF NOT EXISTS '${user}'@'%' IDENTIFIED BY '${pass}';
+GRANT ALL ON mediathek_%.* TO '${user}'@'%';
+FLUSH PRIVILEGES;
+SQL
+  then
+    echo "[quickstart] Failed to create MariaDB user '${user}'."
+    exit 1
+  fi
+  echo "[quickstart] Created/updated MariaDB user '${user}'."
+}
 
 if [[ "${NETWORK_MODE}" == "host" ]]; then
   IMPORTER_NET_ARGS=(--network host)
@@ -88,17 +133,13 @@ EOF
   echo "[quickstart] Generated ${CONFIG_DIR}/mv2mariadb.conf"
 fi
 
-if [[ ! -f "${CONFIG_DIR}/pw_mariadb" ]]; then
-  printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${CONFIG_DIR}/pw_mariadb"
-  chmod 600 "${CONFIG_DIR}/pw_mariadb"
-  echo "[quickstart] Generated ${CONFIG_DIR}/pw_mariadb"
-fi
+printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${CONFIG_DIR}/pw_mariadb"
+chmod 600 "${CONFIG_DIR}/pw_mariadb"
+echo "[quickstart] Wrote ${CONFIG_DIR}/pw_mariadb"
 
-if [[ ! -f "${API_CONFIG_DIR}/sqlpasswd" ]]; then
-  printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${API_CONFIG_DIR}/sqlpasswd"
-  chmod 600 "${API_CONFIG_DIR}/sqlpasswd"
-  echo "[quickstart] Generated ${API_CONFIG_DIR}/sqlpasswd"
-fi
+printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${API_CONFIG_DIR}/sqlpasswd"
+chmod 600 "${API_CONFIG_DIR}/sqlpasswd"
+echo "[quickstart] Wrote ${API_CONFIG_DIR}/sqlpasswd"
 
 docker pull dbt1/mediathek-importer:latest
 docker pull dbt1/mt-api-dev:latest
@@ -108,7 +149,7 @@ if [[ "${START_DB,,}" =~ ^(y|)$ ]]; then
   docker rm -f mediathek-db >/dev/null 2>&1 || true
   docker run -d --name mediathek-db \
     "${DB_NET_ARGS[@]}" \
-    -e MARIADB_ROOT_PASSWORD="${DB_PASS}" \
+    -e MARIADB_ROOT_PASSWORD="${DB_ROOT_PASS}" \
     -e MARIADB_DATABASE=mediathek_1 \
     --restart unless-stopped \
     mariadb:11.4 \
@@ -118,13 +159,30 @@ if [[ "${START_DB,,}" =~ ^(y|)$ ]]; then
   DB_HOST="mediathek-db"
   API_DB_HOST="${DB_HOST}"
   sed -i "s/^mysqlHost=.*/mysqlHost=${DB_HOST}/" "${CONFIG_DIR}/mv2mariadb.conf"
+  wait_for_db_container "mediathek-db" "${DB_ROOT_PASS}" 180 || exit 1
+  ensure_db_user "mediathek-db" "${DB_USER}" "${DB_PASS}" "${DB_ROOT_PASS}"
+else
+  echo "[quickstart] Expecting MariaDB at host '${DB_HOST}'. Make sure it is reachable before continuing."
 fi
 
-docker run --rm \
-  -v "${CONFIG_DIR}:/opt/importer/config" \
-  -v "${DATA_DIR}:/opt/importer/bin/dl" \
-  "${IMPORTER_NET_ARGS[@]}" \
-  dbt1/mediathek-importer --update
+echo "[quickstart] Running importer --update (may take a while)..."
+update_success=0
+for i in {1..5}; do
+  if docker run --rm \
+      -v "${CONFIG_DIR}:/opt/importer/config" \
+      -v "${DATA_DIR}:/opt/importer/bin/dl" \
+      "${IMPORTER_NET_ARGS[@]}" \
+      dbt1/mediathek-importer --update; then
+    update_success=1
+    break
+  fi
+  echo "[quickstart] Importer failed (attempt $i/5). Retrying in 5s..."
+  sleep 5
+done
+if [[ "${update_success}" -ne 1 ]]; then
+  echo "[quickstart] Importer --update failed after multiple attempts."
+  exit 1
+fi
 
 docker rm -f mediathek-importer >/dev/null 2>&1 || true
 docker run -d --name mediathek-importer \

@@ -86,6 +86,33 @@ Default values used by the script (change them via env vars or prompts):
 - MariaDB host: `mediathek-db` (when starting the bundled DB) or your answer to
   the "MariaDB host" prompt
 
+### Credential tips
+
+- The defaults (`root` / `example-root`) are **only meant for local testing**.
+  Pick your own `DB_USER`, `DB_PASS` (and optionally `DB_ROOT_PASS`) via env
+  variables or when prompted before exposing the service publicly.
+- When the script launches the bundled MariaDB container it automatically
+  creates the requested user and grants access to `mediathek_*` schemas. For
+  external databases it simply writes the credentials into the config and
+  assumes the account already exists.
+- Use environment overrides such as  
+  `DB_USER=mediathek DB_PASS=$(openssl rand -hex 12) DB_ROOT_PASS=myrootpw ./quickstart.sh`
+  to provision non-default accounts in one go.
+- Config files (`config/importer/pw_mariadb`, `config/api/sqlpasswd`) are
+  rewritten on every run so changed passwords immediately take effect.
+
+### Database readiness & troubleshooting
+
+- Raspberry Pi-class devices may need 60–90 s for the bundled MariaDB to finish
+  initialisation. The spinner shown after “Waiting for MariaDB …” indicates that
+  the script is still polling the container; it will only continue once a ping
+  succeeds (or abort after the timeout).
+- If the script had to abort, you can manually resume the same steps:
+  1. `docker ps` and `docker logs mediathek-db` to ensure the DB is running.
+  2. `docker run --rm … dbt1/mediathek-importer --update` to bootstrap tables.
+  3. Start the long-running importer and API containers exactly as shown further
+     below.
+
 ## Highlights
 
 - REST-ish endpoints (`mode=api&sub=…`) for programme lists, channels and

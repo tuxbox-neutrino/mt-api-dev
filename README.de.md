@@ -86,6 +86,35 @@ Standardwerte des Skripts (über Umgebungsvariablen oder Eingaben anpassbar):
 - MariaDB-Host: `mediathek-db`, sofern die integrierte Datenbank gestartet wird,
   andernfalls der Wert aus der Host-Abfrage
 
+### Hinweise zu Zugangsdaten
+
+- Die Defaults (`root` / `example-root`) sind **nur für lokale Tests gedacht**.
+  Setze deine eigenen Werte über `DB_USER`, `DB_PASS` (und bei Bedarf
+  `DB_ROOT_PASS`) oder ändere sie bei der Abfrage, bevor du den Dienst ins Netz
+  stellst.
+- Startest du die integrierte MariaDB, legt das Skript den gewünschten Benutzer
+  automatisch an und vergibt Rechte auf `mediathek_*`. Bei externen Datenbanken
+  müssen Benutzer/Passwort bereits existieren – das Skript übernimmt sie nur in
+  die Konfigurationsdateien.
+- Beispiel:  
+  `DB_USER=mediathek DB_PASS=$(openssl rand -hex 12) DB_ROOT_PASS=myrootpw ./quickstart.sh`
+  erzeugt in einem Durchlauf eigene Zugangsdaten.
+- `config/importer/pw_mariadb` sowie `config/api/sqlpasswd` werden bei jedem
+  Lauf überschrieben, damit geänderte Passwörter sofort aktiv sind.
+
+### Datenbank-Wartezeit & Troubleshooting
+
+- Auf Geräten wie dem Raspberry Pi benötigt der erste MariaDB-Start gern bis zu
+  90 Sekunden. Der Spinner hinter „Waiting for MariaDB …“ signalisiert, dass das
+  Skript weiter Polling betreibt; erst nach erfolgreichem Ping geht es mit dem
+  Importer weiter.
+- Musste das Skript abbrechen, kannst du die Schritte manuell fortsetzen:
+  1. Mit `docker ps` und `docker logs mediathek-db` sicherstellen, dass MariaDB
+     läuft.
+  2. `docker run --rm … dbt1/mediathek-importer --update` ausführen, um die
+     Tabellen zu erzeugen.
+  3. Dauerhafte Importer- und API-Container wie unten beschrieben starten.
+
 ## Funktionen auf einen Blick
 
 - REST-ähnliche Endpunkte (`mode=api&sub=…`) für Filmlisten, Sender und

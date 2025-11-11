@@ -11,6 +11,12 @@ BIN_DIR="${API_HOME}/bin"
 BINARY_PATH="${BIN_DIR}/mt-api"
 DIST_BIN="${API_DIST_DIR}/bin"
 
+# Propagate a sensible default DB host so CGI env always has one.
+MT_API_DB_HOST=${MT_API_DB_HOST:-mediathek-db}
+MT_API_DB_PORT=${MT_API_DB_PORT:-3306}
+MT_API_DB_NAME=${MT_API_DB_NAME:-mediathek_1}
+export MT_API_DB_HOST MT_API_DB_PORT MT_API_DB_NAME
+
 mkdir -p "${WWW_DIR}" "${DATA_DIR}" "${DATA_DIR}/.passwd" "${LOG_DIR}" "${CONFIG_DIR}" "${BIN_DIR}"
 chown www-data:www-data "${LOG_DIR}"
 

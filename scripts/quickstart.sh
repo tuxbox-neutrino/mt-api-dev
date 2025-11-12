@@ -22,8 +22,29 @@ API_CONFIG_DIR="${API_CONFIG_DIR:-${ROOT_DIR}/config/api}"
 NETWORK_MODE="${NETWORK_MODE:-bridge}" # bridge | host
 NETWORK_NAME="${NETWORK_NAME:-mediathek-net}"
 API_PORT="${API_PORT:-18080}"
+CURRENT_USER=$(id -un)
+CURRENT_GROUP=$(id -gn)
 
 mkdir -p "${CONFIG_DIR}" "${DATA_DIR}" "${API_CONFIG_DIR}"
+
+ensure_writable_path() {
+  local target="$1" label="$2" probe="$1"
+  if [[ ! -e "${probe}" ]]; then
+    probe=$(dirname "${probe}")
+  fi
+  if [[ ! -w "${probe}" ]]; then
+    cat <<EOF
+[quickstart] ERROR: ${label} (${target}) is not writable by ${CURRENT_USER}.
+[quickstart] Fix permissions, e.g.:
+[quickstart]   sudo chown -R ${CURRENT_USER}:${CURRENT_GROUP} ${ROOT_DIR}
+EOF
+    exit 1
+  fi
+}
+
+ensure_writable_path "${CONFIG_DIR}" "Importer config directory"
+ensure_writable_path "${DATA_DIR}" "Importer data directory"
+ensure_writable_path "${API_CONFIG_DIR}" "API config directory"
 
 prompt() {
   local __var="$1" __text="$2" __default="$3" __input
@@ -140,6 +161,8 @@ else
   API_PORT_ARGS=(-p "${API_PORT}:8080")
 fi
 
+ensure_writable_path "${CONFIG_DIR}/mv2mariadb.conf" "Importer config file"
+
 if [[ ! -f "${CONFIG_DIR}/mv2mariadb.conf" ]]; then
   cat > "${CONFIG_DIR}/mv2mariadb.conf" <<EOF
 aktFileName=Filmliste-akt.xz
@@ -179,10 +202,12 @@ VIDEO_TABLE_NAME=${VIDEO_TABLE_NAME:-video}
 INFO_TABLE_NAME=${INFO_TABLE_NAME:-channelinfo}
 VERSION_TABLE_NAME=${VERSION_TABLE_NAME:-version}
 
+ensure_writable_path "${CONFIG_DIR}/pw_mariadb" "Importer password file"
 printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${CONFIG_DIR}/pw_mariadb"
 chmod 600 "${CONFIG_DIR}/pw_mariadb"
 echo "[quickstart] Wrote ${CONFIG_DIR}/pw_mariadb"
 
+ensure_writable_path "${API_CONFIG_DIR}/sqlpasswd" "API password file"
 printf '%s:%s\n' "${DB_USER}" "${DB_PASS}" > "${API_CONFIG_DIR}/sqlpasswd"
 chmod 600 "${API_CONFIG_DIR}/sqlpasswd"
 echo "[quickstart] Wrote ${API_CONFIG_DIR}/sqlpasswd"

@@ -40,7 +40,7 @@ Da der API-Container keine Datenbank enthält, lautet die empfohlene Reihenfolge
 Nutze dieses Skript, wenn Importer und API möglichst automatisiert mit Docker
 aufgesetzt werden sollen.
 
-Ein Einzeiler richtet Importer + API automatisch ein:
+Ein Einzeiler richtet Importer + API automatisch komplett ein:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mt-api-dev/master/scripts/quickstart.sh -o quickstart.sh
@@ -49,10 +49,14 @@ chmod +x quickstart.sh
 ```
 
 Während der Ausführung fragt das Skript nach MariaDB-Host/-Benutzer/-Passwort
-(Standard: `root` / `example-root`). Auf Wunsch startet es automatisch einen
+(Standard: `root` / `example-root`). Ändere das Passwort einfach während der 
+Abfrage. Standardmäßig startet das Script automatisch einen
 lokalen MariaDB-Container (`mariadb:11.4`), legt die benötigten Dateien unter
 `config/importer/` bzw. `config/api/` an, zieht die Docker-Images und startet
 anschließend Importer **und** API mit `--restart unless-stopped`.
+
+Fertig, mehr braucht man normalerweise nicht mehr zu tun und der API-Server ist
+bereit.
 
 Alle Werte lassen sich über Umgebungsvariablen anpassen – z. B. wenn MariaDB
 schon auf dem Host läuft:

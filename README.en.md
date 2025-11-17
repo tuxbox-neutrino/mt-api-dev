@@ -49,11 +49,14 @@ chmod +x quickstart.sh
 ```
 
 During the run you will be asked for the MariaDB host/user/password (defaults:
-`root`/`example-root`). The script can optionally start a local MariaDB
-container (`mariadb:11.4`), generates the importer config under
+`root`/`example-root`). Simply change the password during the prompt.
+By default, the script automatically starts a local MariaDB container.
+(`mariadb:11.4`), generates the importer config under
 `config/importer/` plus the API `sqlpasswd` under `config/api/`, pulls the Docker
 images and finally launches long-running importer **and** API containers with
 `--restart unless-stopped`.
+
+That's all – there's nothing more to do.
 
 You can override defaults via environment variables before launching, for
 example when your MariaDB already runs on the host:

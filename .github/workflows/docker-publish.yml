@@ -1,12 +1,7 @@
 name: Docker Publish
 
 on:
-  push:
-    branches: [ master ]
-    tags:
-      - 'v*'
-    paths-ignore:
-      - 'scripts/quickstart.sh'
+  # Temporary: disable automatic Docker builds/pushes. Keep manual trigger only.
   workflow_dispatch:
 
 env:

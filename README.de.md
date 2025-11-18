@@ -38,7 +38,9 @@ Da der API-Container keine Datenbank enthält, lautet die empfohlene Reihenfolge
 ## Schnellstart-Skript
 
 Nutze dieses Skript, wenn Importer und API möglichst automatisiert mit Docker
-aufgesetzt werden sollen.
+aufgesetzt werden sollen. Es kümmert sich auf Wunsch **auch um die komplette
+MariaDB-Instanz**, legt Benutzer an und erzeugt alle Konfigurationsdateien – der
+empfohlene Weg, um ohne viele Fragen loszulegen.
 
 Ein Einzeiler richtet Importer + API automatisch komplett ein:
 
@@ -50,13 +52,15 @@ chmod +x quickstart.sh
 
 Während der Ausführung fragt das Skript nach MariaDB-Host/-Benutzer/-Passwort
 (Standard: `root` / `example-root`). Ändere das Passwort einfach während der 
-Abfrage. Standardmäßig startet das Script automatisch einen
-lokalen MariaDB-Container (`mariadb:11.4`), legt die benötigten Dateien unter
+Abfrage. Standardmäßig startet das Script automatisch einen lokalen
+MariaDB-Container (`mariadb:11.4`), legt die benötigten Dateien unter
 `config/importer/` bzw. `config/api/` an, zieht die Docker-Images und startet
-anschließend Importer **und** API mit `--restart unless-stopped`.
+anschließend Importer **und** API mit `--restart unless-stopped`. Du musst also
+keinen separaten Datenbankserver vorbereiten – das Skript übernimmt das.
 
 Fertig, mehr braucht man normalerweise nicht mehr zu tun und der API-Server ist
-bereit.
+bereit. **Die folgenden Abschnitte beschreiben alternative bzw. manuelle
+Varianten – für den normalen Schnellstart reicht das Skript aus.**
 
 Alle Werte lassen sich über Umgebungsvariablen anpassen – z. B. wenn MariaDB
 schon auf dem Host läuft:

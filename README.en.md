@@ -38,7 +38,9 @@ order is **(1) start MariaDB → (2) run the importer → (3) start the API**. T
 ## Quickstart Script
 
 Use this interactive helper when you want one command to provision MariaDB, the
-importer and the API containers with sensible defaults.
+importer and the API containers with sensible defaults. It will happily spin up
+**a complete MariaDB instance on your behalf**, create users and drop all config
+files into place – this is the recommended path for a first-time setup.
 
 You can bootstrap importer + API with a single helper script:
 
@@ -50,13 +52,15 @@ chmod +x quickstart.sh
 
 During the run you will be asked for the MariaDB host/user/password (defaults:
 `root`/`example-root`). Simply change the password during the prompt.
-By default, the script automatically starts a local MariaDB container.
+By default, the script automatically starts a local MariaDB container
 (`mariadb:11.4`), generates the importer config under
 `config/importer/` plus the API `sqlpasswd` under `config/api/`, pulls the Docker
 images and finally launches long-running importer **and** API containers with
-`--restart unless-stopped`.
+`--restart unless-stopped`. You do not need a pre-existing database server – the
+helper provisions one for you if desired.
 
-That's all – there's nothing more to do.
+That's all – there's nothing more to do. **Everything below covers advanced or
+manual setups; the quickstart script already solves the common case.**
 
 You can override defaults via environment variables before launching, for
 example when your MariaDB already runs on the host:

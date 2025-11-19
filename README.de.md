@@ -160,9 +160,9 @@ docker-compose up -d api
 curl http://localhost:18080/mt-api?mode=api&sub=info
 ```
 
-Die dazugehörigen Compose-Dateien findest du im übergeordneten
-`services/mediathek-backend`-Verzeichnis aus dem `neutrino-make` Projekt. Für
-alleinstehende Builds siehe Abschnitt "Manuell bauen".
+Die dazugehörigen Compose-Dateien findest du im
+[mediathek-backend](https://github.com/tuxbox-neutrino/mediathek-backend)
+Repository. Für alleinstehende Builds siehe Abschnitt "Manuell bauen".
 
 ## Vorgefertigtes Docker-Image
 
@@ -240,7 +240,7 @@ die importierten Tabellen bereitstellt (Hostname oder IP). Bei `--network host`
 entsprechend `MT_API_DB_HOST=localhost` oder die tatsächliche IP setzen.
 
 Weitere Details zum Importer siehe README im Schwesterprojekt
-`tuxbox-neutrino/db-import` (lokal: `services/mediathek-backend/vendor/db-import/README.md`).
+`tuxbox-neutrino/db-import` (lokal: `mediathek-backend/vendor/db-import/README.md`).
 
 ## Voraussetzungen
 
@@ -304,7 +304,7 @@ Diese Targets erleichtern die tägliche Entwicklung:
 - `make css` – nur die SCSS-Dateien neu generieren
 - `make lint` – (WIP) geplanter Stil-Check
 - Für End-to-End-Tests empfiehlt sich das `make smoke` Target im
-  `services/mediathek-backend`-Root.
+  `mediathek-backend`-Root.
 
 ## Versionierung
 

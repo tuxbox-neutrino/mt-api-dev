@@ -155,8 +155,8 @@ docker-compose up -d api
 curl http://localhost:18080/mt-api?mode=api&sub=info
 ```
 
-The compose setup lives inside `services/mediathek-backend` of the
-`neutrino-make` repository. For standalone builds see "Manual build" below.
+The compose setup lives inside the [mediathek-backend](https://github.com/tuxbox-neutrino/mediathek-backend)
+repository. For standalone builds see "Manual build" below.
 
 ## Prebuilt Docker image
 
@@ -238,7 +238,7 @@ API via `--network host`, use `MT_API_DB_HOST=localhost` or the actual IP
 address of your database server.
 
 For importer details see the README in the companion repository
-`tuxbox-neutrino/db-import` (local checkout under `services/mediathek-backend/vendor/db-import/README.md`).
+`tuxbox-neutrino/db-import` (local checkout under `mediathek-backend/vendor/db-import/README.md`).
 
 ## Requirements
 
@@ -301,7 +301,7 @@ Use the provided helper targets while iterating on the sources:
 - `make css` – regenerate only the SCSS/CSS assets
 - `make lint` – (WIP) upcoming style checks
 - For end-to-end validation run `make smoke` in the parent
-  `services/mediathek-backend` directory.
+  `mediathek-backend` directory.
 
 ## Versioning
 

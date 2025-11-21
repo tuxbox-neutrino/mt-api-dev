@@ -54,6 +54,9 @@ MT_API_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null)
 MT_API_VERSION := $(strip $(MT_API_VERSION))
 MT_API_VERSION := $(patsubst v%,%,$(MT_API_VERSION))
 ifeq ($(MT_API_VERSION),)
+MT_API_VERSION := $(strip $(shell sed -n 's/^VERSION="\([^"]*\)"/\1/p' VERSION 2>/dev/null))
+endif
+ifeq ($(MT_API_VERSION),)
 MT_API_VERSION := 0.0.0
 endif
 EXTRA_CXXFLAGS		+= -DPROGVERSION=\"$(MT_API_VERSION)\"

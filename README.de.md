@@ -46,10 +46,11 @@ aufgesetzt werden sollen. Es kümmert sich auf Wunsch **auch um die komplette
 MariaDB-Instanz**, legt Benutzer an und erzeugt alle Konfigurationsdateien – der
 empfohlene Weg, um ohne viele Fragen loszulegen.
 
-Ein Einzeiler richtet Importer + API automatisch komplett ein:
+Ein Einzeiler richtet Importer + API automatisch komplett ein (das Skript liegt
+im mediathek-backend-Repository):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mt-api-dev/master/scripts/quickstart.sh -o quickstart.sh
+curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mediathek-backend/master/scripts/quickstart.sh -o quickstart.sh
 chmod +x quickstart.sh
 ./quickstart.sh
 ```

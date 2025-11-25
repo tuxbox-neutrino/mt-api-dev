@@ -46,10 +46,11 @@ importer and the API containers with sensible defaults. It will happily spin up
 **a complete MariaDB instance on your behalf**, create users and drop all config
 files into place – this is the recommended path for a first-time setup.
 
-You can bootstrap importer + API with a single helper script:
+You can bootstrap importer + API with a single helper script (it now lives in
+the mediathek-backend repository):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mt-api-dev/master/scripts/quickstart.sh -o quickstart.sh
+curl -fsSL https://raw.githubusercontent.com/tuxbox-neutrino/mediathek-backend/master/scripts/quickstart.sh -o quickstart.sh
 chmod +x quickstart.sh
 ./quickstart.sh
 ```

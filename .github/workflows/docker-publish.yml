@@ -43,7 +43,8 @@ jobs:
       - name: Read API version
         id: api_version
         run: |
-          VERSION=$(git -C mt-api-dev describe --tags --long --abbrev=7)
+          set -euo pipefail
+          VERSION=$(git -C mt-api-dev describe --tags --long --abbrev=7 2>/dev/null || git -C mt-api-dev rev-parse --short HEAD)
           echo "value=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build and push API image

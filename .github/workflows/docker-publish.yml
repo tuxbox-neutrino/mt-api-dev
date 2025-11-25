@@ -43,7 +43,7 @@ jobs:
       - name: Read API version
         id: api_version
         run: |
-          VERSION=$(grep -Po '(?<=VERSION=")[^"]+' mt-api-dev/VERSION)
+          VERSION=$(git -C mt-api-dev describe --tags --long --abbrev=7)
           echo "value=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build and push API image

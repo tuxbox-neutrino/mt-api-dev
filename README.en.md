@@ -136,32 +136,6 @@ Default values used by the script (change them via env vars or prompts):
 - No external LLVM / Boost URI dependency anymore – the binary links only
   against libc/pthread/dl.
 
-## Quickstart (Docker Compose)
-
-If you are hacking inside the `neutrino-make` repository, this compose stack
-mirrors the production topology and keeps every dependency local.
-
-```bash
-# Clone importer/api sources once
-make vendor
-
-# Start MariaDB
-docker-compose up -d db
-
-# Run importer so the database is populated
-docker-compose run --rm importer --update
-docker-compose run --rm importer
-
-# Launch the API (container 8080 -> host 18080)
-docker-compose up -d api
-
-# Sanity check
-curl http://localhost:18080/mt-api?mode=api&sub=info
-```
-
-The compose setup lives inside the [mediathek-backend](https://github.com/tuxbox-neutrino/mediathek-backend)
-repository. For standalone builds see "Manual build" below.
-
 ## Prebuilt Docker image
 
 For standalone deployments (Raspberry Pi, VPS, bare metal) you can run the

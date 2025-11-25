@@ -22,6 +22,8 @@ API_CONFIG_DIR="${API_CONFIG_DIR:-${ROOT_DIR}/config/api}"
 NETWORK_MODE="${NETWORK_MODE:-bridge}" # bridge | host
 NETWORK_NAME="${NETWORK_NAME:-mediathek-net}"
 API_PORT="${API_PORT:-18080}"
+API_DATA_VOLUME="${API_DATA_VOLUME:-mediathek-backend_mt-api-data}"
+API_LOG_VOLUME="${API_LOG_VOLUME:-mediathek-backend_mt-api-log}"
 CURRENT_USER=$(id -un)
 CURRENT_GROUP=$(id -gn)
 
@@ -45,6 +47,16 @@ EOF
 ensure_writable_path "${CONFIG_DIR}" "Importer config directory"
 ensure_writable_path "${DATA_DIR}" "Importer data directory"
 ensure_writable_path "${API_CONFIG_DIR}" "API config directory"
+
+ensure_volume() {
+  local name="$1"
+  if ! docker volume inspect "${name}" >/dev/null 2>&1; then
+    docker volume create "${name}" >/dev/null
+  fi
+}
+
+ensure_volume "${API_DATA_VOLUME}"
+ensure_volume "${API_LOG_VOLUME}"
 
 prompt() {
   local __var="$1" __text="$2" __default="$3" __input
@@ -304,6 +316,8 @@ docker rm -f mediathek-api >/dev/null 2>&1 || true
 docker run -d --name mediathek-api \
   "${API_NET_ARGS[@]}" \
   "${API_PORT_ARGS[@]:-}" \
+  -v "${API_DATA_VOLUME}:/opt/api/data" \
+  -v "${API_LOG_VOLUME}:/opt/api/log" \
   -v "${API_CONFIG_DIR}:/opt/api/config" \
   -e MT_API_DB_HOST="${API_DB_HOST}" \
   --restart unless-stopped \

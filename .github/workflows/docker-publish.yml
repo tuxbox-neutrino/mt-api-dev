@@ -15,12 +15,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: mt-api-dev
+          fetch-depth: 0
 
       - name: Checkout mediathek-backend
         uses: actions/checkout@v4
         with:
           repository: ${{ env.BACKEND_REPO }}
           path: mediathek-backend
+          fetch-depth: 0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

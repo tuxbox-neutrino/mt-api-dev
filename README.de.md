@@ -4,6 +4,10 @@ Dies ist die Web-API, die vom Neutrino-Mediathek-Plugin abgefragt wird. Sie
 stellt JSON- und HTML-Ausgaben bereit, die auf einer MariaDB-Datenbank mit den
 aufbereiteten MediathekView-Daten basieren.
 
+> Für Installation und Betrieb siehe die
+> [Zentraldokumentation im mediathek-backend](../../README.de.md). Dieses
+> Dokument dreht sich um den API-Teil (Quellen/Build/Parameter).
+
 ## Architektur-Überblick
 
 Das Gesamtsystem besteht aus drei Bausteinen:

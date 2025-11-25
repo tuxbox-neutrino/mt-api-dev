@@ -4,6 +4,10 @@ This repository hosts the backend API consumed by the Neutrino Mediathek plugin.
 It exposes lightweight CGI/FastCGI endpoints that render JSON and HTML data
 based on the MediathekView catalogue stored in MariaDB.
 
+> Deployment instructions now live in the
+> [mediathek-backend README](../../README.en.md). This document explains the API
+> component itself (sources, build instructions, configuration flags).
+
 ## Architecture overview
 
 The backend is split into three independent building blocks:

@@ -5,7 +5,7 @@ stellt JSON- und HTML-Ausgaben bereit, die auf einer MariaDB-Datenbank mit den
 aufbereiteten MediathekView-Daten basieren.
 
 > Für Installation und Betrieb siehe die
-> [Zentraldokumentation im mediathek-backend](../../README.de.md). Dieses
+> [Zentraldokumentation im mediathek-backend](https://github.com/tuxbox-neutrino/mediathek-backend/blob/master/README.md). Dieses
 > Dokument dreht sich um den API-Teil (Quellen/Build/Parameter).
 
 ## Architektur-Überblick

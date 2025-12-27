@@ -5,7 +5,7 @@ It exposes lightweight CGI/FastCGI endpoints that render JSON and HTML data
 based on the MediathekView catalogue stored in MariaDB.
 
 > Deployment instructions now live in the
-> [mediathek-backend README](../../README.en.md). This document explains the API
+> [mediathek-backend README](https://github.com/tuxbox-neutrino/mediathek-backend/blob/master/README.md). This document explains the API
 > component itself (sources, build instructions, configuration flags).
 
 ## Architecture overview

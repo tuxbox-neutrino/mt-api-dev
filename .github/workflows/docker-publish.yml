@@ -47,7 +47,12 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(git -C mt-api-dev describe --tags --long --abbrev=7 2>/dev/null || git -C mt-api-dev rev-parse --short HEAD)
-          echo "value=${VERSION}" >> $GITHUB_OUTPUT
+          # Dockerfile and entrypoint come from mediathek-backend and shape the runtime
+          # behaviour just as much as the sources do. Without them in the tag, a change
+          # there yields a different image under an unchanged tag. Path-filtered, so
+          # unrelated backend commits do not churn the version.
+          BUILD=$(git -C mediathek-backend log -1 --format=%h -- docker/api)
+          echo "value=${VERSION}-be${BUILD}" >> $GITHUB_OUTPUT
 
       - name: Build and push API image
         working-directory: mediathek-backend
